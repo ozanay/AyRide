@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">AyRide</string>
+    <string name="action_settings">Settings</string>
+    <string name="facebook_app_id">515347915316889</string>
+    <string name="title_text">AyRide</string>
+    <string name="login">SIGN IN</string>
+    <string name="sign_up">SIGN UP</string>
+    <string name="facebook_login_text">Connect with Facebook</string>
+    <string name="sign_up_activity_label">SIGN UP</string>
+    <string name="next">NEXT</string>
+    <string name="birthday">Birthday</string>
+    <string name="createAccount">Create Account</string>
+    <string name="signInButton">SIGN IN</string>
+    <string-array name="gender_array">
+        <item>Female</item>
+        <item>Male</item>
+        <item>Other</item>
+    </string-array>
+    <string name="title_activity_login">LoginActivity</string>
+</resources>

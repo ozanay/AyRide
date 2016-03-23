@@ -1,0 +1,101 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".RegisterActivity"
+    android:id="@+id/linearLayout"
+    android:weightSum="15"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="56dp"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
+        android:background="@color/background">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/title_text"
+            android:layout_gravity="center_horizontal"
+            android:textSize="@dimen/title_text_size"
+            android:textColor="@color/textColor"
+            android:id="@+id/title_text" />
+
+        <!--  Name Label -->
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp">
+            <EditText android:id="@+id/input_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapWords"
+                android:hint="Name" />
+        </android.support.design.widget.TextInputLayout>
+
+        <!--  Surname Label -->
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp">
+            <EditText android:id="@+id/input_surname"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapWords"
+                android:imeOptions="actionDone"
+                android:hint="Surname" />
+        </android.support.design.widget.TextInputLayout>
+
+        <!-- Birthday Picker -->
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp">
+            <EditText
+                android:id="@+id/birthday_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:inputType="date"
+                android:ems="10"
+                android:hint="Birthday"
+                android:onClick="showDatePickerDialog"/>
+        </android.support.design.widget.TextInputLayout>
+
+        <!-- Gender Spinner -->
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp">
+            <Spinner
+                android:id="@+id/gender_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:hint="Gender"/>
+        </android.support.design.widget.TextInputLayout>
+
+        <!-- Next Button -->
+        <Button
+            android:id="@+id/next_button"
+            android:text="@string/next"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/textColor"
+            android:layout_weight="1"
+            android:textColor="@color/background" />
+
+    </LinearLayout>
+</LinearLayout>
