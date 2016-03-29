@@ -20,7 +20,6 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
-import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
@@ -34,11 +33,11 @@ import java.security.NoSuchAlgorithmException;
 public class EnteranceActivity extends AppCompatActivity {
 
     private final static String signIn = "LOGIN";
-    private final static String signup = "SIGNUP";
+    private final static String signUp = "SIGNUP";
     private final static String facebookLogin = "FACEBOOKLOGIN";
     private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
     private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
-    private Button loginButton;
+    private Button signInButton;
     private Button signUpButton;
     private LoginButton facebookLoginButton;
     private CallbackManager callbackManager;
@@ -55,34 +54,19 @@ public class EnteranceActivity extends AppCompatActivity {
         checkKeyHash();
         setContentView(R.layout.activity_enterance);
 
-        this.loginButton = (Button) findViewById(R.id.login_button);
-        this.loginButton.setOnClickListener(new LoginListener());
+        this.signInButton = (Button) findViewById(R.id.login_button);
+        this.signInButton.setOnClickListener(new LoginListener());
 
         this.signUpButton = (Button) findViewById(R.id.sign_up_button);
         this.signUpButton.setOnClickListener(new SignUpListener());
 
-        this.TrackAccessToken();
         if (accessToken != null) {
+            this.TrackAccessToken();
             changeActivity(facebookLogin);
         }
 
         this.facebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
-        this.facebookLoginButton.registerCallback(this.callbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                changeActivity(facebookLogin);
-            }
-
-            @Override
-            public void onCancel() {
-
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-
-            }
-        });
+        this.facebookLoginButton.registerCallback(this.callbackManager, new FacebookRegisterCallback());
     }
 
     @Override
@@ -136,27 +120,11 @@ public class EnteranceActivity extends AppCompatActivity {
         accessToken = AccessToken.getCurrentAccessToken();
     }
 
-    private void TrackProfile() {
-        profileTracker = new ProfileTracker() {
-            @Override
-            protected void onCurrentProfileChanged(
-                    Profile oldProfile,
-                    Profile currentProfile) {
-                // App code
-                if (!oldProfile.equals(currentProfile)) {
-                    Profile.setCurrentProfile(currentProfile);
-                }
-            }
-        };
-
-        profile = Profile.getCurrentProfile();
-    }
-
     private void changeActivity(String activityName) {
         activityName = activityName.toUpperCase();
         Intent intent = null;
         switch (activityName) {
-            case signup:
+            case signUp:
                 intent = new Intent(EnteranceActivity.this, RegisterActivity.class);
                 break;
             case signIn:
@@ -226,7 +194,7 @@ public class EnteranceActivity extends AppCompatActivity {
     private class SignUpListener implements View.OnClickListener {
         public void onClick(View v) {
             // Perform action on click
-            changeActivity(signup);
+            changeActivity(signUp);
         }
     }
 
