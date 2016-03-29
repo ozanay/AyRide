@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.facebook.appevents.AppEventsLogger;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
@@ -38,6 +39,22 @@ public class LoginActivity extends AppCompatActivity {
         initializeMobileService();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Logs 'install' and 'app activate' App Events.
+        AppEventsLogger.activateApp(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Logs 'app deactivate' App Event.
+        AppEventsLogger.deactivateApp(this);
+    }
+
     private void initializeUIFields() {
         emailText = (EditText) findViewById(R.id.email_field);
         passwordText = (EditText) findViewById(R.id.password_field);
@@ -54,7 +71,7 @@ public class LoginActivity extends AppCompatActivity {
             );
             mobileServiceTable = mobileServiceClient.getTable("user_info", User.class);
         } catch (MalformedURLException e) {
-            new Exception("There was an error creating the Mobile Service. Verify the URL");
+            e.printStackTrace();
         }
     }
 
