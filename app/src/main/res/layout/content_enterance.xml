@@ -4,7 +4,7 @@
 
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".MainActivity"
+    tools:context=".HomePageActivity"
     android:id="@+id/linearLayout"
     android:weightSum="15"
     android:background="@drawable/blackwhite">

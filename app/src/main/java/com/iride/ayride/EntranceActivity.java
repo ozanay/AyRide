@@ -27,12 +27,15 @@ import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
+import com.microsoft.windowsazure.mobileservices.table.TableQueryCallback;
 
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.List;
 
 public class EntranceActivity extends AppCompatActivity {
 
@@ -46,32 +49,36 @@ public class EntranceActivity extends AppCompatActivity {
     private Button signUpButton;
     private LoginButton facebookLoginButton;
     private CallbackManager callbackManager;
-    protected AccessToken accessToken;
+    private AccessToken accessToken;
     private AccessTokenTracker accessTokenTracker;
+    private MobileServiceClient mobileServiceClient = null;
+    private MobileServiceTable mobileServiceTable = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         try {
+            super.onCreate(savedInstanceState);
             FacebookSdk.sdkInitialize(getApplicationContext());
             this.callbackManager = CallbackManager.Factory.create();
             setContentView(R.layout.activity_enterance);
             this.generateKeyHash();
+            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+            this.initializeMobileService();
             this.signInButton = (Button) findViewById(R.id.login_button);
             this.signInButton.setOnClickListener(new LoginListener());
 
             this.signUpButton = (Button) findViewById(R.id.sign_up_button);
             this.signUpButton.setOnClickListener(new SignUpListener());
 
-            if (accessToken != null) {
-                this.TrackAccessToken();
+            if (isFacebookUserLoggedIn()){
+                Log.d(loggerTag,"User Already Logged In!");
                 changeActivity(facebookLogin);
+                finish();
             }
 
             this.facebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
-            /*List<String> permissionList = Arrays.asList("public_profile", "email", "gender", "user_birthday");
-            this.facebookLoginButton.setReadPermissions(permissionList);*/
-
+            List<String> permissionList = Arrays.asList("public_profile", "email", "user_birthday");
+            this.facebookLoginButton.setReadPermissions(permissionList);
             this.facebookLoginButton.registerCallback(this.callbackManager, new FacebookRegisterCallback());
         } catch (Exception exc) {
             Log.e(loggerTag, exc.getCause().toString());
@@ -104,24 +111,20 @@ public class EntranceActivity extends AppCompatActivity {
                 Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
             }
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-            Log.e(loggerTag, e.getCause().toString());
+            Log.e(loggerTag, e.getMessage());
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-            Log.e(loggerTag, e.getCause().toString());
+            Log.e(loggerTag, e.getMessage());
         }
     }
 
-    private void TrackAccessToken() {
+    private void trackAccessToken() {
         accessTokenTracker = new AccessTokenTracker() {
             @Override
             protected void onCurrentAccessTokenChanged(
                     AccessToken oldAccessToken,
                     AccessToken currentAccessToken) {
 
-                if (!oldAccessToken.equals(currentAccessToken)) {
-                    AccessToken.setCurrentAccessToken(currentAccessToken);
-                }
             }
         };
 
@@ -139,7 +142,7 @@ public class EntranceActivity extends AppCompatActivity {
                 intent = new Intent(EntranceActivity.this, LoginActivity.class);
                 break;
             case facebookLogin:
-                intent = new Intent(EntranceActivity.this, MainActivity.class);
+                intent = new Intent(EntranceActivity.this, HomePageActivity.class);
                 break;
         }
 
@@ -148,21 +151,7 @@ public class EntranceActivity extends AppCompatActivity {
         }
     }
 
-    private void addUser(User user) {
-        MobileServiceClient mobileServiceClient = null;
-        MobileServiceTable mobileServiceTable = null;
-        try {
-            mobileServiceClient = new MobileServiceClient(
-                    mobileServiceUrl,
-                    mobileServiceAppKey,
-                    this
-            );
-            mobileServiceTable = mobileServiceClient.getTable("user_info", User.class);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            Log.e(loggerTag, e.getCause().toString());
-        }
-
+    private void addFacebookUser(User user) {
         if (mobileServiceClient == null || mobileServiceTable == null) {
             Log.d(loggerTag, "Mobile Service or Table is Null");
             return;
@@ -177,13 +166,73 @@ public class EntranceActivity extends AppCompatActivity {
             public void onCompleted(User entity, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
                     Log.i(loggerTag, "Service added the user successfully!");
+                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
                     changeActivity(facebookLogin);
+                    finish();
                 } else {
-                    Log.e(loggerTag, exception.getCause().toString());
+                    Log.e(loggerTag, exception.getMessage());
                     Toast.makeText(getApplicationContext(), "User was not added to system!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    private String splitName(String name) {
+        String[] splited = name.split(" ");
+        if (splited.length > 2) {
+            for (int i = 0; i < splited.length - 1; i++) {
+                name += splited[i] + " ";
+            }
+            name = name.substring(0, name.length() - 1);
+        } else {
+            name = splited[0];
+        }
+
+        return name;
+    }
+
+    private void initializeMobileService() {
+        try {
+            this.mobileServiceClient = new MobileServiceClient(
+                    mobileServiceUrl,
+                    mobileServiceAppKey,
+                    this
+            );
+            this.mobileServiceTable = mobileServiceClient.getTable("user_info", User.class);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            Log.e(loggerTag, e.getCause().toString());
+        }
+    }
+
+    private void checkExistenceOfFacebookUser(String facebookUserId) {
+        if (mobileServiceTable == null){
+            Log.d(loggerTag,"Mobile Service Table is Null!");
+            return;
+        }
+
+        mobileServiceTable.where().field("id").eq(facebookUserId).execute(new TableQueryCallback<User>() {
+            public void onCompleted(List<User> result, int count, Exception exception, ServiceFilterResponse response) {
+                if (exception == null) {
+                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+                    if (result.isEmpty() || result == null) {
+                        Log.i(loggerTag, "No Existence!");
+                    } else {
+                        Log.i(loggerTag, "Already Exist!");
+                        changeActivity(facebookLogin);
+                        finish();
+                    }
+                } else {
+                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+                    Log.e(loggerTag, exception.getCause().toString());
+                }
+            }
+        });
+    }
+
+    private boolean isFacebookUserLoggedIn() {
+        AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        return accessToken != null;
     }
 
     private class LoginListener implements View.OnClickListener {
@@ -203,9 +252,27 @@ public class EntranceActivity extends AppCompatActivity {
     private class FacebookRegisterCallback implements FacebookCallback<LoginResult> {
         @Override
         public void onSuccess(final LoginResult loginResult) {
-            final User user = new User();
-            accessToken = loginResult.getAccessToken();
+            if (loginResult == null) {
+                Log.d(loggerTag, "Login Result Is Null!");
+                return;
+            }
 
+            final User user = new User();
+            EntranceActivity.this.accessToken = loginResult.getAccessToken();
+            accessTokenTracker = new AccessTokenTracker() {
+                @Override
+                protected void onCurrentAccessTokenChanged(AccessToken oldAccessToken, AccessToken currentAccessToken) {
+                    if (currentAccessToken != null) {
+                        Log.d(loggerTag, "New Access Token Enabled!");
+                        accessToken = AccessToken.getCurrentAccessToken();
+                    } else {
+                        Log.d(loggerTag, "No Changed Access Token!");
+                        changeActivity(facebookLogin);
+                        finish();
+                    }
+                }
+            };
+            accessTokenTracker.startTracking();
             GraphRequest.newMeRequest(accessToken, new GraphRequest.GraphJSONObjectCallback() {
                 @Override
                 public void onCompleted(JSONObject facebookUser, GraphResponse response) {
@@ -221,7 +288,9 @@ public class EntranceActivity extends AppCompatActivity {
 
                         String message = null;
                         String id = accessToken.getUserId();
-                        String name = profile.getName();
+                        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+                        EntranceActivity.this.checkExistenceOfFacebookUser(id);
+                        String name = EntranceActivity.this.splitName(profile.getName());
                         String surName = profile.getLastName();
                         message = "Id: " + id + "\n" + "Name: " + name + "\n" + "Surname: " + surName + "\n";
                         user.setId(id);
@@ -247,7 +316,8 @@ public class EntranceActivity extends AppCompatActivity {
                         }
 
                         Log.i(loggerTag, message);
-                        addUser(user);
+                        findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+                        EntranceActivity.this.addFacebookUser(user);
                     }
                 }
             }).executeAsync();
@@ -255,12 +325,15 @@ public class EntranceActivity extends AppCompatActivity {
 
         @Override
         public void onCancel() {
-
+            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+            Log.d(loggerTag, "Facebook Login Is Canceled!");
         }
 
         @Override
         public void onError(FacebookException error) {
-            Toast.makeText(getApplicationContext(), error.getCause().toString(), Toast.LENGTH_SHORT).show();
+            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+            Log.e(loggerTag, error.getMessage());
+            Log.e(loggerTag, error.getCause().toString());
         }
     }
 }

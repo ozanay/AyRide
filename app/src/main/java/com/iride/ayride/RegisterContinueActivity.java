@@ -7,6 +7,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,8 +17,10 @@ import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
+import com.microsoft.windowsazure.mobileservices.table.TableQueryCallback;
 
 import java.net.MalformedURLException;
+import java.util.List;
 
 public class RegisterContinueActivity extends AppCompatActivity {
 
@@ -26,6 +29,7 @@ public class RegisterContinueActivity extends AppCompatActivity {
     private final static String numberPattern = "[0-9]+";
     private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
     private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
+    private final static String loggerTag = "RegisterContinueActivity";
     private String name;
     private String surName;
     private String gender;
@@ -46,6 +50,7 @@ public class RegisterContinueActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_continue);
         user = new User();
+        findViewById(R.id.sign_up_loading_panel).setVisibility(View.GONE);
         setFields(getIntent());
         initializeEditTexts();
         initializeMobileService();
@@ -70,7 +75,7 @@ public class RegisterContinueActivity extends AppCompatActivity {
             );
             mobileServiceTable = mobileServiceClient.getTable("user_info",User.class);
         } catch (MalformedURLException e) {
-            new Exception("There was an error creating the Mobile Service. Verify the URL");
+            Log.e(loggerTag,e.getMessage());
         }
     }
 
@@ -172,18 +177,41 @@ public class RegisterContinueActivity extends AppCompatActivity {
 
     private void createUser(final User user) {
         if (mobileServiceClient == null) {
-            ShowMessage("Service is null!");
+            Log.e(loggerTag,"Service Is Null");
             return;
         }
 
         mobileServiceTable.insert(user, new TableOperationCallback<User>() {
             public void onCompleted(User entity, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
-                    startActivity(new Intent(RegisterContinueActivity.this, MainActivity.class));
+                    findViewById(R.id.sign_up_loading_panel).setVisibility(View.GONE);
+                    startActivity(new Intent(RegisterContinueActivity.this, HomePageActivity.class));
                 } else {
                     Toast.makeText(getApplicationContext(), "Fail Registration!", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(RegisterContinueActivity.this, RegisterActivity.class);
-                    startActivity(intent);
+                    Log.d(loggerTag,exception.getMessage());
+                    startActivity(new Intent(RegisterContinueActivity.this, RegisterActivity.class));
+                    finish();
+                }
+            }
+        });
+    }
+
+    private void checkExistenceOfUser(String email) {
+        mobileServiceTable.where().field("user_email").eq(email).execute(new TableQueryCallback<User>() {
+            public void onCompleted(List<User> result, int count, Exception exception, ServiceFilterResponse response) {
+                if (exception == null) {
+                    if (result.isEmpty() || result.size() == 0) {
+                        Log.d(loggerTag, "No Existence!");
+                    } else {
+                        Log.d(loggerTag, "Already Exist!");
+                        Toast.makeText(getApplicationContext(), "User Has Already Existed", Toast.LENGTH_SHORT).show();
+                        findViewById(R.id.sign_up_loading_panel).setVisibility(View.GONE);
+                        startActivity(new Intent(RegisterContinueActivity.this, HomePageActivity.class));
+                        finish();
+                    }
+                } else {
+                    findViewById(R.id.sign_up_loading_panel).setVisibility(View.GONE);
+                    Log.e(loggerTag, exception.getMessage());
                 }
             }
         });
@@ -218,6 +246,8 @@ public class RegisterContinueActivity extends AppCompatActivity {
             user.setPhoneNumber(phone);
             user.setEmail(emailText.getText().toString());
             user.setPassword(passwordText.getText().toString());
+            findViewById(R.id.sign_up_loading_panel).setVisibility(View.VISIBLE);
+            checkExistenceOfUser(emailText.getText().toString());
             createUser(user);
         }
     }

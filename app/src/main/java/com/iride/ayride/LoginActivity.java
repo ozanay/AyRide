@@ -35,6 +35,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        findViewById(R.id.sign_in_loading_panel).setVisibility(View.GONE);
         initializeUIFields();
         initializeMobileService();
     }
@@ -104,7 +105,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (exception == null) {
                     if (!result.isEmpty()) {
                         if (result.size() == 1){
-                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                            startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
                         }
                     }
                 } else {
@@ -146,7 +147,7 @@ public class LoginActivity extends AppCompatActivity {
                 passwordText.setSelectAllOnFocus(true);
                 return;
             }
-
+            findViewById(R.id.sign_in_loading_panel).setVisibility(View.GONE);
             loginToApp(emailText.getText().toString(), passwordText.getText().toString());
         }
     }
