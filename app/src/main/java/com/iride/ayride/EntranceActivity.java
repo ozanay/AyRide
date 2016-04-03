@@ -1,9 +1,12 @@
 package com.iride.ayride;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
@@ -63,6 +66,10 @@ public class EntranceActivity extends AppCompatActivity {
             setContentView(R.layout.activity_enterance);
             this.generateKeyHash();
             findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+            if (!isConnectedToInternet()){
+                Toast.makeText(getApplicationContext(), "Internet connection is necessary!", Toast.LENGTH_SHORT).show();
+            }
+
             this.initializeMobileService();
             this.signInButton = (Button) findViewById(R.id.login_button);
             this.signInButton.setOnClickListener(new LoginListener());
@@ -233,6 +240,17 @@ public class EntranceActivity extends AppCompatActivity {
     private boolean isFacebookUserLoggedIn() {
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
         return accessToken != null;
+    }
+
+    private boolean isConnectedToInternet(){
+        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if(connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
+            return true;
+        }
+
+        return false;
     }
 
     private class LoginListener implements View.OnClickListener {

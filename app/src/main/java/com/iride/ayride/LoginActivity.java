@@ -147,6 +147,7 @@ public class LoginActivity extends AppCompatActivity {
                 passwordText.setSelectAllOnFocus(true);
                 return;
             }
+
             findViewById(R.id.sign_in_loading_panel).setVisibility(View.GONE);
             loginToApp(emailText.getText().toString(), passwordText.getText().toString());
         }
