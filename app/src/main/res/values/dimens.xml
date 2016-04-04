@@ -6,4 +6,5 @@
     <dimen name="title_text_size">45dp</dimen>
     <dimen name="padding_top_head">30sp</dimen>
     <dimen name="fb_text_size">25dp</dimen>
+    <dimen name="elevation_toolbar">4dp</dimen>
 </resources>

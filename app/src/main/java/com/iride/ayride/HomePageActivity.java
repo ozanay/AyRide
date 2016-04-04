@@ -7,8 +7,9 @@ import android.content.IntentSender;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -24,7 +25,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class HomePageActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class HomePageActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private final static String loggerTag = HomePageActivity.class.getSimpleName();
@@ -37,6 +38,8 @@ public class HomePageActivity extends FragmentActivity implements OnMapReadyCall
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_homepage);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.homepage_toolbar);
+        setSupportActionBar(toolbar);
         // Obtain the SupportMapFragment and get notified when the googleMap is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);

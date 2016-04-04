@@ -2,10 +2,8 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorBackground">@color/textColor</item>
+        <item name="android:textColor">@color/background</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -15,14 +13,8 @@
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
-    <style name="Theme.MyAppTheme" parent="@android:style/Theme.Holo">
-        <item name="android:actionBarStyle">@style/Theme.MyAppTheme.ActionBar</item>
+    <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="android:textColor">@color/textColor</item>
+        <item name="android:background">@color/background</item>
     </style>
-
-    <style name="Theme.MyAppTheme.ActionBar" parent="@android:style/Widget.Holo.ActionBar">
-        <item name="android:background">#FFA000</item>
-    </style>
-
 </resources>
