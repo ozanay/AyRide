@@ -29,7 +29,7 @@ public class RegisterContinueActivity extends AppCompatActivity {
     private final static String numberPattern = "[0-9]+";
     private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
     private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
-    private final static String loggerTag = "RegisterContinueActivity";
+    private final static String loggerTag = RegisterContinueActivity.class.getSimpleName();
     private String name;
     private String surName;
     private String gender;
@@ -44,6 +44,7 @@ public class RegisterContinueActivity extends AppCompatActivity {
     private Button createAccount;
     private MobileServiceClient mobileServiceClient;
     private MobileServiceTable<User> mobileServiceTable;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,28 +86,6 @@ public class RegisterContinueActivity extends AppCompatActivity {
         gender = intent.getStringExtra("gender");
         birthday = intent.getStringExtra("birthday");
 
-    }
-
-    private void ShowUserInfo(User user) {
-        AlertDialog.Builder builder1 = new AlertDialog.Builder(RegisterContinueActivity.this);
-        String userInfo = "Name: " + user.getName() + "\n"
-                + "Surname: " + user.getSurName() + "\n"
-                + "Gender: " + user.getGender() + "\n"
-                + "Birthday: " + user.getBirthday() + "\n"
-                + "Phone: " + user.getPhoneNumber() + "\n"
-                + "E-mail: " + user.getEmail() + "\n"
-                + "Password: " + user.getPassword() + "\n";
-        builder1.setMessage(userInfo);
-        builder1.setCancelable(true);
-        builder1.setNegativeButton("Close",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-
-        AlertDialog alert11 = builder1.create();
-        alert11.show();
     }
 
     private void ShowMessage(String msg) {
@@ -175,9 +154,9 @@ public class RegisterContinueActivity extends AppCompatActivity {
         return true;
     }
 
-    private void createUser(final User user) {
+    private void addUserToDB(final User user) {
         if (mobileServiceClient == null) {
-            Log.e(loggerTag,"Service Is Null");
+            Log.e(loggerTag, "Service Is Null");
             return;
         }
 
@@ -188,7 +167,7 @@ public class RegisterContinueActivity extends AppCompatActivity {
                     startActivity(new Intent(RegisterContinueActivity.this, HomePageActivity.class));
                 } else {
                     Toast.makeText(getApplicationContext(), "Fail Registration!", Toast.LENGTH_SHORT).show();
-                    Log.d(loggerTag,exception.getMessage());
+                    Log.d(loggerTag, exception.getMessage());
                     startActivity(new Intent(RegisterContinueActivity.this, RegisterActivity.class));
                     finish();
                 }
@@ -216,6 +195,8 @@ public class RegisterContinueActivity extends AppCompatActivity {
             }
         });
     }
+
+
 
     private class CreateAccountListener implements View.OnClickListener {
         @Override
@@ -248,7 +229,8 @@ public class RegisterContinueActivity extends AppCompatActivity {
             user.setPassword(passwordText.getText().toString());
             findViewById(R.id.sign_up_loading_panel).setVisibility(View.VISIBLE);
             checkExistenceOfUser(emailText.getText().toString());
-            createUser(user);
+            EntranceActivity.addUserToSharedPreferences(user);
+            addUserToDB(user);
         }
     }
 

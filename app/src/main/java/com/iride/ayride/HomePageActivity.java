@@ -11,9 +11,15 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.ToggleButton;
 
+import com.facebook.AccessToken;
+import com.facebook.login.LoginManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -25,7 +31,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class HomePageActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class HomePageActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private final static String loggerTag = HomePageActivity.class.getSimpleName();
@@ -33,6 +40,9 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     private Location currentLocation;
     private GoogleApiClient googleApiClient;
     private Marker currentLocationMarker;
+    private ImageButton searchRideButton;
+    private ImageButton settingsButton;
+    private ToggleButton userModeButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +59,12 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         }
 
         buildGoogleApiClient();
+        searchRideButton = (ImageButton) findViewById(R.id.searh_ride);
+        searchRideButton.setOnClickListener(new SearchRideListener());
+        settingsButton = (ImageButton) findViewById(R.id.settings_button);
+        settingsButton.setOnClickListener(new SettingsListener());
+        userModeButton = (ToggleButton) findViewById(R.id.toggle_button);
+        userModeButton.setOnClickListener(new UserModeListener());
     }
 
     /**
@@ -90,16 +106,13 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         currentLocation = LocationServices.FusedLocationApi.getLastLocation(
                 googleApiClient);
         if (currentLocation != null) {
-            Log.d(loggerTag, "Current Location is NOT Null");
             centerInLocation(currentLocation);
-        } else {
-            Log.d(loggerTag, "Current Location is Null");
         }
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        Log.d(loggerTag,"Connection Suspended!");
+        Log.d(loggerTag, "Connection Suspended!");
     }
 
     @Override
@@ -116,15 +129,26 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
+    @Override
+    public void onLocationChanged(Location location) {
+        currentLocation = location;
+        centerInLocation(currentLocation);
+    }
+
     private void exitFromTheApp() {
         String exitMessage = "Do you want to exit?";
         AlertDialog.Builder builder = new AlertDialog.Builder(HomePageActivity.this);
         builder.setMessage(exitMessage);
         builder.setCancelable(true);
-        builder.setNegativeButton("Close",
+        builder.setNegativeButton("Logout",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
+                        if (isFacebookUser()){
+                            LoginManager.getInstance().logOut();
+                            startActivity(new Intent(HomePageActivity.this, EntranceActivity.class));
+                        } else {
+
+                        }
                     }
                 });
         builder.setPositiveButton("Exit",
@@ -136,6 +160,10 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
 
         AlertDialog alert11 = builder.create();
         alert11.show();
+    }
+
+    private boolean isFacebookUser(){
+        return AccessToken.getCurrentAccessToken() != null;
     }
 
     private boolean isGPSEnable() {
@@ -185,6 +213,29 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
                     .build();
+        }
+    }
+
+    private class SearchRideListener implements View.OnClickListener{
+        @Override
+        public void onClick(View v) {
+            startActivity(new Intent(HomePageActivity.this, SearchRideActivity.class));
+            finish();
+        }
+    }
+
+    private class SettingsListener implements View.OnClickListener{
+        @Override
+        public void onClick(View v) {
+            startActivity(new Intent(HomePageActivity.this, SettingsActivity.class));
+            finish();
+        }
+    }
+
+    private class UserModeListener implements View.OnClickListener{
+        @Override
+        public void onClick(View v) {
+
         }
     }
 }
