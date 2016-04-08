@@ -2,7 +2,6 @@ package com.iride.ayride;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -48,21 +47,12 @@ public class EntranceActivity extends AppCompatActivity {
     private final static String facebookLogin = "FACEBOOKLOGIN";
     private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
     private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
-    private final static String loggerTag = "EntranceActivity";
-    protected final static String PREFENCES = "PREFERENCES";
-    protected final static String nameKey = "NAMEKEY";
-    protected final static String surNameKey = "SURNAMEKEY";
-    protected final static String birthdayKey = "BIRTHDAYKEY";
-    protected final static String genderKey = "GENDERKEY";
-    protected final static String phoneKey = "PHONEKEY";
-    protected final static String emailKey = "EMAILKEY";
-    protected final static String passwordKey = "PASSWORDKEY";
+    private final static String loggerTag = EntranceActivity.class.getSimpleName();
+    private UserLocalStorage userLocalStorage;
     private Button signInButton;
     private Button signUpButton;
     private LoginButton facebookLoginButton;
     private CallbackManager callbackManager;
-    protected static SharedPreferences sharedPreferences;
-    protected static SharedPreferences.Editor sharedPreferencesEditor;
     private AccessToken accessToken;
     private AccessTokenTracker accessTokenTracker;
     private MobileServiceClient mobileServiceClient = null;
@@ -87,8 +77,7 @@ public class EntranceActivity extends AppCompatActivity {
 
             this.signUpButton = (Button) findViewById(R.id.sign_up_button);
             this.signUpButton.setOnClickListener(new SignUpListener());
-            EntranceActivity.sharedPreferences = getSharedPreferences(EntranceActivity.PREFENCES,Context.MODE_PRIVATE);
-            EntranceActivity.sharedPreferencesEditor = EntranceActivity.sharedPreferences.edit();
+            userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
 
             if (isFacebookUserLoggedIn()){
                 Log.d(loggerTag,"User Already Logged In!");
@@ -266,16 +255,6 @@ public class EntranceActivity extends AppCompatActivity {
         return false;
     }
 
-    protected static void addUserToSharedPreferences(User user){
-        sharedPreferencesEditor.putString(EntranceActivity.nameKey,user.getName());
-        sharedPreferencesEditor.putString(EntranceActivity.surNameKey,user.getSurName());
-        sharedPreferencesEditor.putString(EntranceActivity.genderKey,user.getGender());
-        sharedPreferencesEditor.putString(EntranceActivity.birthdayKey,user.getBirthday());
-        sharedPreferencesEditor.putString(EntranceActivity.phoneKey,user.getPhoneNumber());
-        sharedPreferencesEditor.putString(EntranceActivity.emailKey,user.getEmail());
-        sharedPreferencesEditor.putString(EntranceActivity.passwordKey,user.getPassword());
-        sharedPreferencesEditor.commit();
-    }
 
     private class LoginListener implements View.OnClickListener {
         public void onClick(View v) {
@@ -355,7 +334,7 @@ public class EntranceActivity extends AppCompatActivity {
 
                             Log.i(loggerTag, message);
                             findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-                            EntranceActivity.addUserToSharedPreferences(user);
+                            userLocalStorage.storeUser(user);
                             EntranceActivity.this.addFacebookUser(user);
                         } catch (Exception exc){
                             Log.e(loggerTag,exc.getMessage());

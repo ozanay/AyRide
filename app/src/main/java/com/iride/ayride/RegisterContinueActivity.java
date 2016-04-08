@@ -1,5 +1,6 @@
 package com.iride.ayride;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,6 +25,8 @@ import java.util.List;
 
 public class RegisterContinueActivity extends AppCompatActivity {
 
+    private final static int passwordLengthRestriction = 8;
+    private final static int phoneNumberLengthRestriction = 10;
     private final static String containsDigit = ".*\\d+.*";
     private final static String letterPattern = "[a-zA-Z]+";
     private final static String numberPattern = "[0-9]+";
@@ -34,8 +37,6 @@ public class RegisterContinueActivity extends AppCompatActivity {
     private String surName;
     private String gender;
     private String birthday;
-    private final static int passwordLengthRestriction = 8;
-    private final static int phoneNumberLengthRestriction = 10;
     private User user;
     private EditText phoneText;
     private EditText emailText;
@@ -44,13 +45,14 @@ public class RegisterContinueActivity extends AppCompatActivity {
     private Button createAccount;
     private MobileServiceClient mobileServiceClient;
     private MobileServiceTable<User> mobileServiceTable;
-
+    private UserLocalStorage userLocalStorage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_continue);
         user = new User();
+        userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
         findViewById(R.id.sign_up_loading_panel).setVisibility(View.GONE);
         setFields(getIntent());
         initializeEditTexts();
@@ -229,7 +231,7 @@ public class RegisterContinueActivity extends AppCompatActivity {
             user.setPassword(passwordText.getText().toString());
             findViewById(R.id.sign_up_loading_panel).setVisibility(View.VISIBLE);
             checkExistenceOfUser(emailText.getText().toString());
-            EntranceActivity.addUserToSharedPreferences(user);
+            userLocalStorage.storeUser(user);
             addUserToDB(user);
         }
     }

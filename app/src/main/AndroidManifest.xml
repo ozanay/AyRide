@@ -49,8 +49,12 @@
             android:authorities="com.facebook.app.FacebookContentProvider515347915316889"
             android:exported="true" />
         <!-- SIGN UP ACTIVITY -->
-        <activity android:name=".RegisterActivity" android:theme="@style/AppTheme.NoActionBar"/>
-        <activity android:name=".RegisterContinueActivity" android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".RegisterActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".RegisterContinueActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
         <!--
              ATTENTION: This was auto-generated to add Google Play services to your project for
              App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -61,7 +65,7 @@
 
         <activity
             android:name=".LoginActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -78,10 +82,10 @@
             android:name=".HomePageActivity"
             android:label=""
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".SearchRideActivity" android:theme="@style/AppTheme.NoActionBar"/>
         <activity
-            android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings"></activity>
+            android:name=".SearchRideActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".SettingsActivity"></activity>
     </application>
 
 </manifest>
