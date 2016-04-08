@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/personalInfo">
+        <EditTextPreference
+            android:key="userName"
+            android:title="NAME"></EditTextPreference>
+        <EditTextPreference
+            android:key="userSurname"
+            android:title="SURNAME"></EditTextPreference>
+        <EditTextPreference
+            android:key="userEmail"
+            android:title="E_MAIL"></EditTextPreference>
+        <EditTextPreference
+            android:key="userBirthday"
+            android:title="BIRTHDAY"></EditTextPreference>
+        <EditTextPreference
+            android:key="userGender"
+            android:title="GENDER"></EditTextPreference>
+        <EditTextPreference
+            android:key="userPhone"
+            android:title="PHONE NUMBER"></EditTextPreference>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/passwordProcesses">
+        <CheckBoxPreference
+            android:checked="false"
+            android:key="userPassword"
+            android:summary=""
+            android:title="PASSWORD"></CheckBoxPreference>
+        <EditTextPreference
+            android:key="userNewPassword"
+            android:summary=""
+            android:title="Change your password"></EditTextPreference>
+    </PreferenceCategory>
+</PreferenceScreen>
