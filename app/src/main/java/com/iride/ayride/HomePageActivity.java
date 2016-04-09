@@ -216,6 +216,10 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
+    private boolean isDriver() {
+        return !userModeButton.isChecked();
+    }
+
     private class SearchRideListener implements View.OnClickListener{
         @Override
         public void onClick(View v) {
@@ -227,7 +231,9 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     private class SettingsListener implements View.OnClickListener{
         @Override
         public void onClick(View v) {
-            startActivity(new Intent(HomePageActivity.this, SettingsActivity.class));
+            Intent intent = new Intent(HomePageActivity.this, SettingsActivity.class);
+            intent.putExtra("isDriver", HomePageActivity.this.isDriver());
+            startActivity(intent);
             finish();
         }
     }

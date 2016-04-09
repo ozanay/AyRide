@@ -10,12 +10,16 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.util.Log;
 
+import com.facebook.AccessToken;
+
 /**
  * Created by user on 6.7.2015.
  */
 public class SettingsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
     private final static String loggerTag = SettingsActivity.class.getSimpleName();
+    private boolean isFacebookUser;
+    private boolean isDriver;
     private Preference preferenceName;
     private Preference preferenceSurName;
     private Preference preferenceBirthday;
@@ -27,13 +31,13 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        addPreferencesFromResource(R.xml.preferences);
         try {
+            super.onCreate(savedInstanceState);
+            this.isDriver = getIntent().getExtras().getBoolean("isDriver");
             userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
-            initializeUserPreferences();
-        } catch (Exception exc){
-            Log.e(loggerTag,exc.getMessage());
+            initializeLayoutAndPreferences();
+        } catch (Exception exc) {
+            Log.e(loggerTag, exc.getMessage());
         }
         /*final CheckBoxPreference showingPass = (CheckBoxPreference) getPreferenceScreen().findPreference("userPassword");
         showingPass.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -66,7 +70,6 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
         getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
 
-
     @SuppressWarnings("deprecation")
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
@@ -76,52 +79,125 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
 
     private void initializeUserPreferences() {
         preferenceName = getPreferenceManager().findPreference("userName");
-        if (userLocalStorage.getUserName()==null || userLocalStorage.getUserName().isEmpty()){
+        if (userLocalStorage.getUserName() == null || userLocalStorage.getUserName().isEmpty()) {
             preferenceName.setSummary("");
         } else {
             preferenceName.setSummary(userLocalStorage.getUserName());
         }
 
         preferenceSurName = getPreferenceManager().findPreference("userSurname");
-        if(userLocalStorage.getUserSurName() == null || userLocalStorage.getUserSurName().isEmpty()){
+        if (userLocalStorage.getUserSurName() == null || userLocalStorage.getUserSurName().isEmpty()) {
             preferenceSurName.setSummary("");
         } else {
             preferenceSurName.setSummary(userLocalStorage.getUserSurName());
         }
 
         preferenceBirthday = getPreferenceManager().findPreference("userBirthday");
-        if(userLocalStorage.getUserBirthday() == null || userLocalStorage.getUserBirthday().isEmpty()){
+        if (userLocalStorage.getUserBirthday() == null || userLocalStorage.getUserBirthday().isEmpty()) {
             preferenceBirthday.setSummary("");
         } else {
             preferenceBirthday.setSummary(userLocalStorage.getUserBirthday());
         }
 
         preferenceEmail = getPreferenceManager().findPreference("userEmail");
-        if(userLocalStorage.getUserEmail() == null || userLocalStorage.getUserEmail().isEmpty()) {
+        if (userLocalStorage.getUserEmail() == null || userLocalStorage.getUserEmail().isEmpty()) {
             preferenceEmail.setSummary("");
         } else {
             preferenceEmail.setSummary(userLocalStorage.getUserEmail());
         }
 
         preferenceGender = getPreferenceManager().findPreference("userGender");
-        if(userLocalStorage.getUserGender() == null || userLocalStorage.getUserGender().isEmpty()) {
+        if (userLocalStorage.getUserGender() == null || userLocalStorage.getUserGender().isEmpty()) {
             preferenceGender.setSummary("");
         } else {
             preferenceGender.setSummary(userLocalStorage.getUserGender());
         }
 
         preferencePhoneNumber = getPreferenceManager().findPreference("userPhoneNumber");
-        if(userLocalStorage.getUserPhoneNumber() == null || userLocalStorage.getUserPhoneNumber().isEmpty()) {
+        if (userLocalStorage.getUserPhoneNumber() == null || userLocalStorage.getUserPhoneNumber().isEmpty()) {
             preferencePhoneNumber.setSummary("");
         } else {
             preferencePhoneNumber.setSummary(userLocalStorage.getUserPhoneNumber());
         }
 
         preferencePassword = getPreferenceManager().findPreference("userPassword");
-        if(userLocalStorage.getUserPassword() == null || userLocalStorage.getUserPassword().isEmpty()) {
+        if (userLocalStorage.getUserPassword() == null || userLocalStorage.getUserPassword().isEmpty()) {
             preferencePassword.setSummary("");
         } else {
             preferencePassword.setSummary(userLocalStorage.getUserPassword());
+        }
+    }
+
+    private void initializeFacebookUserPreferences() {
+        preferenceName = getPreferenceManager().findPreference("faebookUserName");
+        if (userLocalStorage.getUserName() == null || userLocalStorage.getUserName().isEmpty()) {
+            preferenceName.setSummary("");
+        } else {
+            preferenceName.setSummary(userLocalStorage.getUserName());
+        }
+
+        preferenceSurName = getPreferenceManager().findPreference("facebookUserSurname");
+        if (userLocalStorage.getUserSurName() == null || userLocalStorage.getUserSurName().isEmpty()) {
+            preferenceSurName.setSummary("");
+        } else {
+            preferenceSurName.setSummary(userLocalStorage.getUserSurName());
+        }
+
+        preferenceBirthday = getPreferenceManager().findPreference("facebookUserBirthday");
+        if (userLocalStorage.getUserBirthday() == null || userLocalStorage.getUserBirthday().isEmpty()) {
+            preferenceBirthday.setSummary("");
+        } else {
+            preferenceBirthday.setSummary(userLocalStorage.getUserBirthday());
+        }
+
+        preferenceEmail = getPreferenceManager().findPreference("facebookUserEmail");
+        if (userLocalStorage.getUserEmail() == null || userLocalStorage.getUserEmail().isEmpty()) {
+            preferenceEmail.setSummary("");
+        } else {
+            preferenceEmail.setSummary(userLocalStorage.getUserEmail());
+        }
+
+        preferenceGender = getPreferenceManager().findPreference("facebookUserGender");
+        if (userLocalStorage.getUserGender() == null || userLocalStorage.getUserGender().isEmpty()) {
+            preferenceGender.setSummary("");
+        } else {
+            preferenceGender.setSummary(userLocalStorage.getUserGender());
+        }
+
+        preferencePhoneNumber = getPreferenceManager().findPreference("faceookUserPhoneNumber");
+        if (userLocalStorage.getUserPhoneNumber() == null || userLocalStorage.getUserPhoneNumber().isEmpty()) {
+            preferencePhoneNumber.setSummary("");
+        } else {
+            preferencePhoneNumber.setSummary(userLocalStorage.getUserPhoneNumber());
+        }
+    }
+
+    private void initializeDriverPreferences() {
+    }
+
+    private void initializeFacebookDriverPreferences() {
+    }
+
+    private boolean isFacebookUser() {
+        this.isFacebookUser = AccessToken.getCurrentAccessToken() != null;
+        return this.isFacebookUser;
+    }
+
+    private void initializeLayoutAndPreferences() {
+        if (isFacebookUser()) {
+            if (!this.isDriver) {
+                addPreferencesFromResource(R.xml.facebook_user_preferences);
+                initializeFacebookUserPreferences();
+            } else {
+                addPreferencesFromResource(R.xml.facebook_driver_preferences);
+                initializeFacebookDriverPreferences();
+            }
+        } else if (!this.isDriver) {
+            addPreferencesFromResource(R.xml.preferences);
+            initializeUserPreferences();
+        } else {
+            addPreferencesFromResource(R.xml.driver_preferences);
+            initializeDriverPreferences();
         }
     }
 

@@ -1,4 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen>
-
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/personalInfo">
+        <EditTextPreference
+            android:key="facebookUserName"
+            android:title="NAME"></EditTextPreference>
+        <EditTextPreference
+            android:key="facebookUserSurname"
+            android:title="SURNAME"></EditTextPreference>
+        <EditTextPreference
+            android:key="facebookUserEmail"
+            android:title="E_MAIL"></EditTextPreference>
+        <EditTextPreference
+            android:key="facebookUserBirthday"
+            android:title="BIRTHDAY"></EditTextPreference>
+        <EditTextPreference
+            android:key="facebookUserGender"
+            android:title="GENDER"></EditTextPreference>
+        <EditTextPreference
+            android:key="facebookUserPhone"
+            android:title="PHONE NUMBER"></EditTextPreference>
+    </PreferenceCategory>
 </PreferenceScreen>

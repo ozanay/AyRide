@@ -2,44 +2,33 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="@string/personalInfo">
         <EditTextPreference
-            android:key="driverName"
+            android:key="facebookDriverName"
             android:title="NAME"></EditTextPreference>
         <EditTextPreference
-            android:key="driverSurname"
+            android:key="facebookDriverSurname"
             android:title="SURNAME"></EditTextPreference>
         <EditTextPreference
-            android:key="driverEmail"
+            android:key="facebookDriverEmail"
             android:title="E_MAIL"></EditTextPreference>
         <EditTextPreference
-            android:key="driverBirthday"
+            android:key="facebookDriverBirthday"
             android:title="BIRTHDAY"></EditTextPreference>
         <EditTextPreference
-            android:key="driverGender"
+            android:key="facebookDriverGender"
             android:title="GENDER"></EditTextPreference>
         <EditTextPreference
-            android:key="driverPhone"
+            android:key="facebookDriverPhone"
             android:title="PHONE NUMBER"></EditTextPreference>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/vehicleInfo">
         <EditTextPreference
-            android:key="vehicleModel"
+            android:key="facebookDriverVehicleModel"
             android:title="VEHICLE MODEL"></EditTextPreference>
         <EditTextPreference
-            android:key="vehicleColor"
+            android:key="facebookDriverVehicleColor"
             android:title="VEHICLE COLOR"></EditTextPreference>
         <EditTextPreference
-            android:key="vehicleLicensePlate"
+            android:key="facebookDriverVehicleLicensePlate"
             android:title="LICENSE PLATE"></EditTextPreference>
-    </PreferenceCategory>
-    <PreferenceCategory android:title="@string/passwordProcesses">
-        <CheckBoxPreference
-            android:checked="false"
-            android:key="driverPassword"
-            android:summary=""
-            android:title="PASSWORD"></CheckBoxPreference>
-        <EditTextPreference
-            android:key="driverNewPassword"
-            android:summary=""
-            android:title="Change your password"></EditTextPreference>
     </PreferenceCategory>
 </PreferenceScreen>
