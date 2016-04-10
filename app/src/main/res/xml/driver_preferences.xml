@@ -3,43 +3,54 @@
     <PreferenceCategory android:title="@string/personalInfo">
         <EditTextPreference
             android:key="driverName"
-            android:title="NAME"></EditTextPreference>
+            android:title="NAME"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="driverSurname"
-            android:title="SURNAME"></EditTextPreference>
+            android:title="SURNAME"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="driverEmail"
-            android:title="E_MAIL"></EditTextPreference>
+            android:title="E_MAIL"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="driverBirthday"
-            android:title="BIRTHDAY"></EditTextPreference>
+            android:title="BIRTHDAY"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="driverGender"
-            android:title="GENDER"></EditTextPreference>
+            android:title="GENDER"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="driverPhone"
-            android:title="PHONE NUMBER"></EditTextPreference>
+            android:title="PHONE NUMBER"
+            android:textColor="@color/textColor"></EditTextPreference>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/vehicleInfo">
         <EditTextPreference
             android:key="vehicleModel"
-            android:title="VEHICLE MODEL"></EditTextPreference>
+            android:title="VEHICLE MODEL"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="vehicleColor"
-            android:title="VEHICLE COLOR"></EditTextPreference>
+            android:title="VEHICLE COLOR"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="vehicleLicensePlate"
-            android:title="LICENSE PLATE"></EditTextPreference>
+            android:title="LICENSE PLATE"
+            android:textColor="@color/textColor"></EditTextPreference>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/passwordProcesses">
         <CheckBoxPreference
             android:checked="false"
             android:key="driverPassword"
             android:summary=""
-            android:title="PASSWORD"></CheckBoxPreference>
+            android:title="PASSWORD"
+            android:textColor="@color/textColor"></CheckBoxPreference>
         <EditTextPreference
             android:key="driverNewPassword"
             android:summary=""
-            android:title="Change your password"></EditTextPreference>
+            android:title="Change your password"
+            android:textColor="@color/textColor"></EditTextPreference>
     </PreferenceCategory>
 </PreferenceScreen>

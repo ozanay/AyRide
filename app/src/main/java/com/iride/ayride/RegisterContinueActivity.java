@@ -165,6 +165,7 @@ public class RegisterContinueActivity extends AppCompatActivity {
         mobileServiceTable.insert(user, new TableOperationCallback<User>() {
             public void onCompleted(User entity, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
+                    userLocalStorage.storeId(entity.getId());
                     findViewById(R.id.sign_up_loading_panel).setVisibility(View.GONE);
                     startActivity(new Intent(RegisterContinueActivity.this, HomePageActivity.class));
                 } else {

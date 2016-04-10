@@ -3,21 +3,33 @@
     <PreferenceCategory android:title="@string/personalInfo">
         <EditTextPreference
             android:key="facebookUserName"
-            android:title="NAME"></EditTextPreference>
+            android:title="NAME"
+            android:textColor="@color/textColor"
+            android:background="@color/background"></EditTextPreference>
         <EditTextPreference
             android:key="facebookUserSurname"
-            android:title="SURNAME"></EditTextPreference>
+            android:title="SURNAME"
+            android:textColor="@color/textColor"
+            android:background="@color/background"></EditTextPreference>
         <EditTextPreference
             android:key="facebookUserEmail"
-            android:title="E_MAIL"></EditTextPreference>
+            android:title="E_MAIL"
+            android:textColor="@color/textColor"
+            android:background="@color/background"></EditTextPreference>
         <EditTextPreference
             android:key="facebookUserBirthday"
-            android:title="BIRTHDAY"></EditTextPreference>
+            android:title="BIRTHDAY"
+            android:textColor="@color/textColor"
+            android:background="@color/background"></EditTextPreference>
         <EditTextPreference
             android:key="facebookUserGender"
-            android:title="GENDER"></EditTextPreference>
+            android:title="GENDER"
+            android:textColor="@color/textColor"
+            android:background="@color/background"></EditTextPreference>
         <EditTextPreference
             android:key="facebookUserPhone"
-            android:title="PHONE NUMBER"></EditTextPreference>
+            android:title="PHONE NUMBER"
+            android:textColor="@color/textColor"
+            android:background="@color/background"></EditTextPreference>
     </PreferenceCategory>
 </PreferenceScreen>

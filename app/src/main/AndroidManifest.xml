@@ -85,7 +85,8 @@
         <activity
             android:name=".SearchRideActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".SettingsActivity"></activity>
+        <activity android:name=".SettingsActivity"
+            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>

@@ -3,32 +3,41 @@
     <PreferenceCategory android:title="@string/personalInfo">
         <EditTextPreference
             android:key="facebookDriverName"
-            android:title="NAME"></EditTextPreference>
+            android:title="NAME"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="facebookDriverSurname"
-            android:title="SURNAME"></EditTextPreference>
+            android:title="SURNAME"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="facebookDriverEmail"
-            android:title="E_MAIL"></EditTextPreference>
+            android:title="E_MAIL"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="facebookDriverBirthday"
-            android:title="BIRTHDAY"></EditTextPreference>
+            android:title="BIRTHDAY"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="facebookDriverGender"
-            android:title="GENDER"></EditTextPreference>
+            android:title="GENDER"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="facebookDriverPhone"
-            android:title="PHONE NUMBER"></EditTextPreference>
+            android:title="PHONE NUMBER"
+            android:textColor="@color/textColor"></EditTextPreference>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/vehicleInfo">
         <EditTextPreference
             android:key="facebookDriverVehicleModel"
-            android:title="VEHICLE MODEL"></EditTextPreference>
+            android:title="VEHICLE MODEL"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="facebookDriverVehicleColor"
-            android:title="VEHICLE COLOR"></EditTextPreference>
+            android:title="VEHICLE COLOR"
+            android:textColor="@color/textColor"></EditTextPreference>
         <EditTextPreference
             android:key="facebookDriverVehicleLicensePlate"
-            android:title="LICENSE PLATE"></EditTextPreference>
+            android:title="LICENSE PLATE"
+            android:textColor="@color/textColor"></EditTextPreference>
     </PreferenceCategory>
 </PreferenceScreen>

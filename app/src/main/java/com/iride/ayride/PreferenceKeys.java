@@ -24,8 +24,6 @@ public enum PreferenceKeys {
     facebookUserEmail,
     facebookUserBirthday,
     facebookUserPhone,
-    facebookUserPassword,
-    facebookUserNewPassword,
 
     /* DRIVER KEYS */
 

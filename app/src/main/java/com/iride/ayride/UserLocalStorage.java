@@ -9,6 +9,7 @@ import android.util.Log;
 public class UserLocalStorage {
 
     private final String loggerTag = UserLocalStorage.class.getSimpleName();
+    private final static String idKey = "IDKEY";
     private final static String surNameKey = "SURNAMEKEY";
     private final static String nameKey = "NAMEKEY";
     private final static String birthdayKey = "BIRTHDAYKEY";
@@ -20,12 +21,22 @@ public class UserLocalStorage {
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor sharedPreferencesEditor;
 
-    public UserLocalStorage(SharedPreferences sharedPreferences){
+    public UserLocalStorage(SharedPreferences sharedPreferences) {
         this.sharedPreferences = sharedPreferences;
         sharedPreferencesEditor = this.sharedPreferences.edit();
     }
 
-    public void storeName(String name){
+    public void storeId(String id) {
+        if (id == null || id.isEmpty()) {
+            Log.d(loggerTag, "Id is null or empty!");
+            return;
+        }
+
+        sharedPreferencesEditor.putString(idKey, id);
+        sharedPreferencesEditor.apply();
+    }
+
+    public void storeName(String name) {
         if (name == null || name.isEmpty()) {
             Log.d(loggerTag, "Name is null or empty!");
             return;
@@ -35,7 +46,7 @@ public class UserLocalStorage {
         sharedPreferencesEditor.apply();
     }
 
-    public void storeSurName(String surName){
+    public void storeSurName(String surName) {
         if (surName == null || surName.isEmpty()) {
             Log.d(loggerTag, "Surname is null or empty!");
             return;
@@ -45,7 +56,7 @@ public class UserLocalStorage {
         sharedPreferencesEditor.apply();
     }
 
-    public void storeBirthday(String birthday){
+    public void storeBirthday(String birthday) {
         if (birthday == null || birthday.isEmpty()) {
             Log.d(loggerTag, "Birthday is null or empty!");
             sharedPreferencesEditor.putString(birthdayKey, noInformation);
@@ -56,7 +67,7 @@ public class UserLocalStorage {
         sharedPreferencesEditor.apply();
     }
 
-    public void storeGender(String gender){
+    public void storeGender(String gender) {
         if (gender == null || gender.isEmpty()) {
             Log.d(loggerTag, "Gender is null or empty!");
             sharedPreferencesEditor.putString(genderKey, noInformation);
@@ -67,7 +78,7 @@ public class UserLocalStorage {
         sharedPreferencesEditor.apply();
     }
 
-    public void storePhoneNumber(String phoneNumber){
+    public void storePhoneNumber(String phoneNumber) {
         if (phoneNumber == null || phoneNumber.isEmpty()) {
             Log.d(loggerTag, "Phone number is null or empty!");
             sharedPreferencesEditor.putString(phoneKey, noInformation);
@@ -78,7 +89,7 @@ public class UserLocalStorage {
         sharedPreferencesEditor.apply();
     }
 
-    public void storeEmail(String email){
+    public void storeEmail(String email) {
         if (email == null || email.isEmpty()) {
             Log.d(loggerTag, "Email is null or empty!");
             sharedPreferencesEditor.putString(emailKey, email);
@@ -89,7 +100,7 @@ public class UserLocalStorage {
         sharedPreferencesEditor.apply();
     }
 
-    public void storePassword(String password){
+    public void storePassword(String password) {
         if (password == null || password.isEmpty()) {
             Log.d(loggerTag, "Password is null or empty!");
             sharedPreferencesEditor.putString(emailKey, noInformation);
@@ -99,10 +110,14 @@ public class UserLocalStorage {
         sharedPreferencesEditor.apply();
     }
 
-    public void storeUser(User user){
-        if (user == null){
-            Log.d(loggerTag,"User Is NULL!");
+    public void storeUser(User user) {
+        if (user == null) {
+            Log.d(loggerTag, "User Is NULL!");
             return;
+        }
+
+        if (user.getId() != null) {
+            storeId(user.getId());
         }
 
         storeName(user.getName());
@@ -114,31 +129,35 @@ public class UserLocalStorage {
         storePassword(user.getPassword());
     }
 
-    public String getUserName(){
-        return sharedPreferences.getString(nameKey,null);
+    public String getUserId() {
+        return sharedPreferences.getString(idKey, null);
     }
 
-    public String getUserSurName(){
-        return sharedPreferences.getString(surNameKey,null);
+    public String getUserName() {
+        return sharedPreferences.getString(nameKey, null);
     }
 
-    public String getUserBirthday(){
-        return sharedPreferences.getString(birthdayKey,null);
+    public String getUserSurName() {
+        return sharedPreferences.getString(surNameKey, null);
     }
 
-    public String getUserGender(){
-        return sharedPreferences.getString(genderKey,null);
+    public String getUserBirthday() {
+        return sharedPreferences.getString(birthdayKey, null);
     }
 
-    public String getUserPhoneNumber(){
-        return sharedPreferences.getString(phoneKey,null);
+    public String getUserGender() {
+        return sharedPreferences.getString(genderKey, null);
     }
 
-    public String getUserEmail(){
-        return sharedPreferences.getString(emailKey,null);
+    public String getUserPhoneNumber() {
+        return sharedPreferences.getString(phoneKey, null);
     }
 
-    public String getUserPassword(){
-        return sharedPreferences.getString(passwordKey,null);
+    public String getUserEmail() {
+        return sharedPreferences.getString(emailKey, null);
+    }
+
+    public String getUserPassword() {
+        return sharedPreferences.getString(passwordKey, null);
     }
 }
