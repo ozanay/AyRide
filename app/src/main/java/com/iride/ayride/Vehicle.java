@@ -17,6 +17,12 @@ public class Vehicle {
         this.vehicleLicensePlate = vehicleLicensePlate;
     }
 
+    public Vehicle(){
+        this.vehicleModel = null;
+        this.vehicleColor = null;
+        this.vehicleLicensePlate = null;
+    }
+
     public String getVehicleId() {
         return vehicleId;
     }

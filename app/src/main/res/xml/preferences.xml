@@ -12,13 +12,17 @@
             android:title="E_MAIL"></EditTextPreference>
         <EditTextPreference
             android:key="userBirthday"
-            android:title="BIRTHDAY"></EditTextPreference>
+            android:title="BIRTHDAY"
+            android:inputType="date"
+            android:ems="10"></EditTextPreference>
         <EditTextPreference
             android:key="userGender"
             android:title="GENDER"></EditTextPreference>
         <EditTextPreference
             android:key="userPhone"
-            android:title="PHONE NUMBER"></EditTextPreference>
+            android:title="PHONE NUMBER"
+            android:inputType="phone"
+            android:maxLength="@integer/normalFormatPhoneNumberMaxLength"></EditTextPreference>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/passwordProcesses">
         <CheckBoxPreference

@@ -1,5 +1,6 @@
 package com.iride.ayride;
 
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,6 +8,7 @@ import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.util.Log;
+import android.widget.DatePicker;
 
 import com.facebook.AccessToken;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
@@ -15,11 +17,10 @@ import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
 
 import java.net.MalformedURLException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
-/**
- * Created by user on 6.7.2015.
- */
-public class SettingsActivity extends PreferenceActivity implements Preference.OnPreferenceChangeListener {
+public class SettingsActivity extends PreferenceActivity {
 
     private final static String loggerTag = SettingsActivity.class.getSimpleName();
     private final static String passwordUnVisible = "********";
@@ -27,6 +28,13 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
     private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
     private boolean isFacebookUser;
     private boolean isDriver;
+    private boolean isUserInformationChange;
+    private boolean isVehicleInformationChange;
+    private DatePickerDialog birthdayPicker;
+    private SimpleDateFormat dateFormatter;
+    private Preference preferenceVehicleModel;
+    private Preference preferenceVehicleColor;
+    private Preference preferenceVehicleLicensePlate;
     private Preference preferenceName;
     private Preference preferenceSurName;
     private Preference preferenceBirthday;
@@ -36,8 +44,11 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
     private Preference preferenceNewPassword;
     private CheckBoxPreference preferencePassword;
     private UserLocalStorage userLocalStorage;
+    private VehicleLocalStorage vehicleLocalStorage;
     private User user;
-    private MobileServiceTable mobileServiceTable;
+    private Vehicle vehicle;
+    private MobileServiceTable userMobileServiceTable;
+    private MobileServiceTable vehicleMobileServiceTable;
     private MobileServiceClient mobileServiceClient;
 
     @Override
@@ -45,302 +56,81 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
         try {
             super.onCreate(savedInstanceState);
             this.isDriver = getIntent().getExtras().getBoolean("isDriver");
+            this.isVehicleInformationChange = false;
+            this.isUserInformationChange = false;
+            user = new User();
             userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
+            if (this.isDriver) {
+                vehicle = new Vehicle();
+                vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES), Context.MODE_PRIVATE));
+            }
+
             initializeLayoutAndPreferences();
         } catch (Exception exc) {
             Log.e(loggerTag, exc.getMessage());
         }
-        /*final CheckBoxPreference showingPass = (CheckBoxPreference) getPreferenceScreen().findPreference("userPassword");
-        showingPass.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                *//*Log.d("MyApp", "Pref " + preference.getKey() + " changed to " + newValue.toString());
-                return true;*//*
-                if (!showingPass.isChecked()) {
-                    String passwordFromFirebase = "password";
-                    //passwordFromFirebase should initialize to database value
-                    showingPass.setSummary(passwordFromFirebase);
-                } else {
-                    showingPass.setSummary("");
-                }
-                return true;
-            }
-        });*/
     }
 
     @Override
     public void onBackPressed() {
-        if (user == null) {
+        if (!isUserInformationChange) {
             startActivity(new Intent(SettingsActivity.this, HomePageActivity.class));
             finish();
         } else {
             initializeMobileService();
             updateUserInformation(user);
             startActivity(new Intent(SettingsActivity.this, HomePageActivity.class));
-            finish();
         }
-    }
-
-    @Override
-    public boolean onPreferenceChange(Preference preference, Object newValue) {
-        String preferenceKey = preference.getKey();
-        user = new User();
-        user.setId(userLocalStorage.getUserId());
-        user.setName(userLocalStorage.getUserName());
-        user.setSurName(userLocalStorage.getUserSurName());
-        if (preferenceKey.contains("Email")) {
-            user.setEmail((String) newValue);
-            userLocalStorage.storeEmail((String) newValue);
-            preference.setSummary((String) newValue);
-        } else if (preferenceKey.contains("Birthday")) {
-            user.setBirthday((String) newValue);
-            userLocalStorage.storeBirthday((String) newValue);
-            preference.setSummary((String) newValue);
-        } else if (preferenceKey.contains("Phone")) {
-            user.setPhoneNumber((String) newValue);
-            userLocalStorage.storePhoneNumber((String) newValue);
-            preference.setSummary((String) newValue);
-        } else if (preferenceKey.contains("Gender")) {
-            user.setGender((String) newValue);
-            userLocalStorage.storeGender((String) newValue);
-            preference.setSummary((String) newValue);
-        } else if (preferenceKey.contains("NewPasword")) {
-            user.setPassword((String) newValue);
-            userLocalStorage.storePassword((String) newValue);
-            if (preferencePassword.isChecked()) {
-                preferencePassword.setSummary((String) newValue);
-            } else {
-                preferencePassword.setSummary(passwordUnVisible);
-            }
-
-            preference.setSummary("");
-        }
-
-        return true;
     }
 
     private void initializeUserPreferences() {
-        preferenceName = getPreferenceManager().findPreference(PreferenceKeys.userName.toString());
-        if (userLocalStorage.getUserName() == null || userLocalStorage.getUserName().isEmpty()) {
-            Log.d(loggerTag, "User Name is NULL!");
-            preferenceName.setSummary("NULL!");
-        } else {
-            preferenceName.setSummary(userLocalStorage.getUserName());
-        }
-
-        preferenceName.setEnabled(false);
-        preferenceSurName = getPreferenceManager().findPreference(PreferenceKeys.userSurname.toString());
-        if (userLocalStorage.getUserSurName() == null || userLocalStorage.getUserSurName().isEmpty()) {
-            Log.d(loggerTag, "User Surname is NULL!");
-            preferenceSurName.setSummary("NULL!");
-        } else {
-            preferenceSurName.setSummary(userLocalStorage.getUserSurName());
-        }
-
-        preferenceSurName.setEnabled(false);
-        preferenceBirthday = getPreferenceManager().findPreference(PreferenceKeys.userBirthday.toString());
-        if (userLocalStorage.getUserBirthday() == null || userLocalStorage.getUserBirthday().isEmpty()) {
-            preferenceBirthday.setSummary("");
-        } else {
-            preferenceBirthday.setSummary(userLocalStorage.getUserBirthday());
-        }
-
-        preferenceEmail = getPreferenceManager().findPreference(PreferenceKeys.userEmail.toString());
-        if (userLocalStorage.getUserEmail() == null || userLocalStorage.getUserEmail().isEmpty()) {
-            preferenceEmail.setSummary("");
-        } else {
-            preferenceEmail.setSummary(userLocalStorage.getUserEmail());
-        }
-
-        preferenceGender = getPreferenceManager().findPreference(PreferenceKeys.userGender.toString());
-        if (userLocalStorage.getUserGender() == null || userLocalStorage.getUserGender().isEmpty()) {
-            preferenceGender.setSummary("");
-        } else {
-            preferenceGender.setSummary(userLocalStorage.getUserGender());
-        }
-
-        preferenceGender.setEnabled(false);
-        preferencePhoneNumber = getPreferenceManager().findPreference(PreferenceKeys.userPhone.toString());
-        if (userLocalStorage.getUserPhoneNumber() == null || userLocalStorage.getUserPhoneNumber().isEmpty()) {
-            preferencePhoneNumber.setSummary("");
-        } else {
-            preferencePhoneNumber.setSummary(userLocalStorage.getUserPhoneNumber());
-        }
-
-        preferencePassword = (CheckBoxPreference) getPreferenceManager().findPreference(PreferenceKeys.userPassword.toString());
-        if (userLocalStorage.getUserPassword() == null || userLocalStorage.getUserPassword().isEmpty()) {
-            preferencePassword.setSummary("");
-        } else {
-            if (preferencePassword.isChecked()) {
-                preferencePassword.setSummary(userLocalStorage.getUserPassword());
-            } else {
-                preferencePassword.setSummary(passwordUnVisible);
-            }
-        }
-
-        preferenceNewPassword = getPreferenceManager().findPreference(PreferenceKeys.userNewPassword.toString());
-        preferencePassword.setSummary("");
+        initializeNamePreference(PreferenceKeys.userName.toString());
+        initializeSurNamePreference(PreferenceKeys.userSurname.toString());
+        initializeGenderPreference(PreferenceKeys.userGender.toString());
+        initializeBirthdayPreference(PreferenceKeys.userBirthday.toString());
+        initializeEmailPreference(PreferenceKeys.userEmail.toString());
+        initializePhoneNumberPreference(PreferenceKeys.userPhone.toString());
+        initializePasswordPreference(PreferenceKeys.userPassword.toString());
+        initializeNewPasswordPreference(PreferenceKeys.userNewPassword.toString());
     }
 
     private void initializeFacebookUserPreferences() {
-        preferenceName = getPreferenceManager().findPreference(PreferenceKeys.facebookUserName.toString());
-        if (userLocalStorage.getUserName() == null || userLocalStorage.getUserName().isEmpty()) {
-            Log.d(loggerTag, "Facebook User Name Is NULL!");
-            preferenceName.setSummary("NULL!");
-        } else {
-            preferenceName.setSummary(userLocalStorage.getUserName());
-        }
-
-        preferenceName.setEnabled(false);
-        preferenceSurName = getPreferenceManager().findPreference(PreferenceKeys.facebookUserSurname.toString());
-        if (userLocalStorage.getUserSurName() == null || userLocalStorage.getUserSurName().isEmpty()) {
-            Log.d(loggerTag, "Facebook User Surname Is NULL!");
-            preferenceSurName.setSummary("NULL!");
-        } else {
-            preferenceSurName.setSummary(userLocalStorage.getUserSurName());
-        }
-
-        preferenceSurName.setEnabled(false);
-        preferenceBirthday = getPreferenceManager().findPreference(PreferenceKeys.facebookUserBirthday.toString());
-        if (userLocalStorage.getUserBirthday() == null || userLocalStorage.getUserBirthday().isEmpty()) {
-            preferenceBirthday.setSummary("");
-        } else {
-            preferenceBirthday.setSummary(userLocalStorage.getUserBirthday());
-        }
-
-        preferenceEmail = getPreferenceManager().findPreference(PreferenceKeys.facebookUserEmail.toString());
-        if (userLocalStorage.getUserEmail() == null || userLocalStorage.getUserEmail().isEmpty()) {
-            preferenceEmail.setSummary("");
-        } else {
-            preferenceEmail.setSummary(userLocalStorage.getUserEmail());
-        }
-
-        preferenceGender = getPreferenceManager().findPreference(PreferenceKeys.facebookUserGender.toString());
-        if (userLocalStorage.getUserGender() == null || userLocalStorage.getUserGender().isEmpty()) {
-            preferenceGender.setSummary("");
-        } else {
-            preferenceGender.setSummary(userLocalStorage.getUserGender());
-        }
-
-        preferencePhoneNumber = getPreferenceManager().findPreference(PreferenceKeys.facebookUserPhone.toString());
-        if (userLocalStorage.getUserPhoneNumber() == null || userLocalStorage.getUserPhoneNumber().isEmpty()) {
-            preferencePhoneNumber.setSummary("");
-        } else {
-            preferencePhoneNumber.setSummary(userLocalStorage.getUserPhoneNumber());
-        }
+        initializeNamePreference(PreferenceKeys.facebookUserName.toString());
+        initializeSurNamePreference(PreferenceKeys.facebookUserSurname.toString());
+        initializeGenderPreference(PreferenceKeys.facebookUserGender.toString());
+        initializeBirthdayPreference(PreferenceKeys.facebookUserBirthday.toString());
+        initializeEmailPreference(PreferenceKeys.facebookUserEmail.toString());
+        initializePhoneNumberPreference(PreferenceKeys.facebookUserPhone.toString());
     }
 
     private void initializeDriverPreferences() {
-        preferenceName = getPreferenceManager().findPreference(PreferenceKeys.driverName.toString());
-        if (userLocalStorage.getUserName() == null || userLocalStorage.getUserName().isEmpty()) {
-            Log.d(loggerTag, "Driver Name is NULL!");
-            preferenceName.setSummary("NULL!");
-        } else {
-            preferenceName.setSummary(userLocalStorage.getUserName());
-        }
-
-        preferenceName.setEnabled(false);
-        preferenceSurName = getPreferenceManager().findPreference(PreferenceKeys.driverSurname.toString());
-        if (userLocalStorage.getUserSurName() == null || userLocalStorage.getUserSurName().isEmpty()) {
-            Log.d(loggerTag, "Driver Surname is NULL!");
-            preferenceSurName.setSummary("NULL!");
-        } else {
-            preferenceSurName.setSummary(userLocalStorage.getUserSurName());
-        }
-
-        preferenceSurName.setEnabled(false);
-        preferenceBirthday = getPreferenceManager().findPreference(PreferenceKeys.driverBirthday.toString());
-        if (userLocalStorage.getUserBirthday() == null || userLocalStorage.getUserBirthday().isEmpty()) {
-            preferenceBirthday.setSummary("");
-        } else {
-            preferenceBirthday.setSummary(userLocalStorage.getUserBirthday());
-        }
-
-        preferenceEmail = getPreferenceManager().findPreference(PreferenceKeys.driverEmail.toString());
-        if (userLocalStorage.getUserEmail() == null || userLocalStorage.getUserEmail().isEmpty()) {
-            preferenceEmail.setSummary("");
-        } else {
-            preferenceEmail.setSummary(userLocalStorage.getUserEmail());
-        }
-
-        preferenceGender = getPreferenceManager().findPreference(PreferenceKeys.driverGender.toString());
-        if (userLocalStorage.getUserGender() == null || userLocalStorage.getUserGender().isEmpty()) {
-            preferenceGender.setSummary("");
-        } else {
-            preferenceGender.setSummary(userLocalStorage.getUserGender());
-        }
-
-        preferenceGender.setEnabled(false);
-        preferencePhoneNumber = getPreferenceManager().findPreference(PreferenceKeys.driverPhone.toString());
-        if (userLocalStorage.getUserPhoneNumber() == null || userLocalStorage.getUserPhoneNumber().isEmpty()) {
-            preferencePhoneNumber.setSummary("");
-        } else {
-            preferencePhoneNumber.setSummary(userLocalStorage.getUserPhoneNumber());
-        }
-
-        preferencePassword = (CheckBoxPreference) getPreferenceManager().findPreference(PreferenceKeys.driverPassword.toString());
-        if (userLocalStorage.getUserPassword() == null || userLocalStorage.getUserPassword().isEmpty()) {
-            preferencePassword.setSummary("");
-        } else {
-            if (preferencePassword.isChecked()) {
-                preferencePassword.setSummary(userLocalStorage.getUserPassword());
-            } else {
-                preferencePassword.setSummary(passwordUnVisible);
-            }
-        }
-
-        preferenceNewPassword = getPreferenceManager().findPreference(PreferenceKeys.driverNewPassword.toString());
-        preferenceNewPassword.setSummary("");
+        initializeNamePreference(PreferenceKeys.driverName.toString());
+        initializeSurNamePreference(PreferenceKeys.driverSurname.toString());
+        initializeGenderPreference(PreferenceKeys.driverGender.toString());
+        initializeBirthdayPreference(PreferenceKeys.driverBirthday.toString());
+        initializeEmailPreference(PreferenceKeys.driverEmail.toString());
+        initializePhoneNumberPreference(PreferenceKeys.driverPhone.toString());
+        initializePasswordPreference(PreferenceKeys.driverPassword.toString());
+        initializeNewPasswordPreference(PreferenceKeys.driverNewPassword.toString());
+        initializeVehicleModelPreference(PreferenceKeys.vehicleModel.toString());
+        initializeVehicleColorPreference(PreferenceKeys.vehicleColor.toString());
+        initializeVehicleLicensePlatePreference(PreferenceKeys.vehicleLicensePlate.toString());
     }
 
     private void initializeFacebookDriverPreferences() {
-        preferenceName = getPreferenceManager().findPreference(PreferenceKeys.facebookDriverName.toString());
-        if (userLocalStorage.getUserName() == null || userLocalStorage.getUserName().isEmpty()) {
-            Log.d(loggerTag, "Facebook Driver Name is NULL!");
-            preferenceName.setSummary("NULL!");
-        } else {
-            preferenceName.setSummary(userLocalStorage.getUserName());
-        }
-
-        preferenceName.setEnabled(false);
-        preferenceSurName = getPreferenceManager().findPreference(PreferenceKeys.facebookDriverSurname.toString());
-        if (userLocalStorage.getUserSurName() == null || userLocalStorage.getUserSurName().isEmpty()) {
-            Log.d(loggerTag, "Facebook Driver Surname is NULL!");
-            preferenceSurName.setSummary("NULL!");
-        } else {
-            preferenceSurName.setSummary(userLocalStorage.getUserSurName());
-        }
-
-        preferenceSurName.setEnabled(false);
-        preferenceBirthday = getPreferenceManager().findPreference(PreferenceKeys.facebookDriverBirthday.toString());
-        if (userLocalStorage.getUserBirthday() == null || userLocalStorage.getUserBirthday().isEmpty()) {
-            preferenceBirthday.setSummary("");
-        } else {
-            preferenceBirthday.setSummary(userLocalStorage.getUserBirthday());
-        }
-
-        preferenceEmail = getPreferenceManager().findPreference(PreferenceKeys.facebookDriverEmail.toString());
-        if (userLocalStorage.getUserEmail() == null || userLocalStorage.getUserEmail().isEmpty()) {
-            preferenceEmail.setSummary("");
-        } else {
-            preferenceEmail.setSummary(userLocalStorage.getUserEmail());
-        }
-
-        preferenceGender = getPreferenceManager().findPreference(PreferenceKeys.facebookDriverGender.toString());
-        if (userLocalStorage.getUserGender() == null || userLocalStorage.getUserGender().isEmpty()) {
-            preferenceGender.setSummary("");
-        } else {
-            preferenceGender.setSummary(userLocalStorage.getUserGender());
-        }
-
-        preferencePhoneNumber = getPreferenceManager().findPreference(PreferenceKeys.facebookDriverPhone.toString());
-        if (userLocalStorage.getUserPhoneNumber() == null || userLocalStorage.getUserPhoneNumber().isEmpty()) {
-            preferencePhoneNumber.setSummary("");
-        } else {
-            preferencePhoneNumber.setSummary(userLocalStorage.getUserPhoneNumber());
-        }
+        initializeNamePreference(PreferenceKeys.facebookDriverName.toString());
+        initializeSurNamePreference(PreferenceKeys.facebookDriverSurname.toString());
+        initializeGenderPreference(PreferenceKeys.facebookDriverGender.toString());
+        initializeBirthdayPreference(PreferenceKeys.facebookDriverBirthday.toString());
+        initializeEmailPreference(PreferenceKeys.facebookDriverEmail.toString());
+        initializePhoneNumberPreference(PreferenceKeys.facebookDriverPhone.toString());
+        initializeVehicleModelPreference(PreferenceKeys.facebookDriverVehicleModel.toString());
+        initializeVehicleColorPreference(PreferenceKeys.facebookDriverVehicleColor.toString());
+        initializeVehicleLicensePlatePreference(PreferenceKeys.facebookDriverVehicleLicensePlate.toString());
     }
 
     private void initializeLayoutAndPreferences() {
+        user.setId(userLocalStorage.getUserId());
         if (isFacebookUser()) {
             if (!this.isDriver) {
                 addPreferencesFromResource(R.xml.facebook_user_preferences);
@@ -365,7 +155,7 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
                     mobileServiceAppKey,
                     this
             );
-            this.mobileServiceTable = mobileServiceClient.getTable("user_info", User.class);
+            this.userMobileServiceTable = mobileServiceClient.getTable("user_info", User.class);
         } catch (MalformedURLException e) {
             e.printStackTrace();
             Log.e(loggerTag, e.getCause().toString());
@@ -373,7 +163,12 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
     }
 
     private void updateUserInformation(User user) {
-        mobileServiceTable.update(user, new TableOperationCallback<User>() {
+        if (user == null) {
+            Log.d(loggerTag, "User in update is NULL!");
+            return;
+        }
+
+        userMobileServiceTable.update(user, new TableOperationCallback<User>() {
             public void onCompleted(User entity, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
                     Log.d(loggerTag, "User information was updated Successfully!");
@@ -387,5 +182,289 @@ public class SettingsActivity extends PreferenceActivity implements Preference.O
     private boolean isFacebookUser() {
         this.isFacebookUser = AccessToken.getCurrentAccessToken() != null;
         return this.isFacebookUser;
+    }
+
+    private void initializeNamePreference(String namePreferenceKey){
+        preferenceName = getPreferenceManager().findPreference(namePreferenceKey);
+        if (userLocalStorage.getUserName() == null) {
+            Log.d(loggerTag, "User Name is NULL!");
+            preferenceName.setSummary("NULL!");
+        } else {
+            preferenceName.setSummary(userLocalStorage.getUserName());
+            user.setName(userLocalStorage.getUserName());
+        }
+
+        preferenceName.setEnabled(false);
+    }
+
+    private void initializeSurNamePreference(String surNamePreferenceKey){
+        preferenceSurName = getPreferenceManager().findPreference(surNamePreferenceKey);
+        if (userLocalStorage.getUserSurName() == null) {
+            Log.d(loggerTag, "User Surname is NULL!");
+            preferenceSurName.setSummary("NULL!");
+        } else {
+            preferenceSurName.setSummary(userLocalStorage.getUserSurName());
+            user.setSurName(userLocalStorage.getUserSurName());
+        }
+
+        preferenceSurName.setEnabled(false);
+    }
+
+    private void initializeGenderPreference(String genderPreferenceKey){
+        preferenceGender = getPreferenceManager().findPreference(genderPreferenceKey);
+        preferenceGender.setOnPreferenceChangeListener(new GenderChangeListener());
+        if (userLocalStorage.getUserGender() != null) {
+            preferenceGender.setSummary(userLocalStorage.getUserGender());
+            user.setGender(userLocalStorage.getUserGender());
+        } else {
+            preferenceGender.setSummary("");
+        }
+    }
+
+    private void initializeBirthdayPreference(String birthdayPreferenceKey){
+        /*dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
+
+        preferenceBirthday.setOnPreferenceClickListener(new BirthdayPreferenceClickListener());
+        Calendar newCalendar = Calendar.getInstance();
+        birthdayPicker = new DatePickerDialog(this, new BirthdayDateListener(),
+                newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
+        */
+        preferenceBirthday = getPreferenceManager().findPreference(birthdayPreferenceKey);
+        if (userLocalStorage.getUserBirthday() == null) {
+            preferenceBirthday.setSummary("");
+        } else {
+            preferenceBirthday.setSummary(userLocalStorage.getUserBirthday());
+            user.setBirthday(userLocalStorage.getUserBirthday());
+        }
+
+        preferenceBirthday.setOnPreferenceChangeListener(new BirthdayChangeListener());
+    }
+
+    private void initializeEmailPreference(String emailPreferenceKey){
+        preferenceEmail = getPreferenceManager().findPreference(emailPreferenceKey);
+        preferenceEmail.setOnPreferenceChangeListener(new EmailChangeListener());
+        if (userLocalStorage.getUserEmail() == null) {
+            preferenceEmail.setSummary("");
+        } else {
+            preferenceEmail.setSummary(userLocalStorage.getUserEmail());
+            user.setEmail(userLocalStorage.getUserEmail());
+        }
+    }
+
+    private void initializePhoneNumberPreference(String phoneNumberPreferenceKey){
+        preferencePhoneNumber = getPreferenceManager().findPreference(phoneNumberPreferenceKey);
+        preferencePhoneNumber.setOnPreferenceChangeListener(new PhoneNumberChangeListener());
+        if (userLocalStorage.getUserPhoneNumber() == null) {
+            preferencePhoneNumber.setSummary("");
+        } else {
+            preferencePhoneNumber.setSummary(userLocalStorage.getUserPhoneNumber());
+            user.setPhoneNumber(userLocalStorage.getUserPhoneNumber());
+        }
+    }
+
+    private void initializePasswordPreference(String passwordPreferenceKey){
+        preferencePassword = (CheckBoxPreference) getPreferenceManager().findPreference(passwordPreferenceKey);
+        preferencePassword.setOnPreferenceChangeListener(new PasswordChangeListener());
+        if (userLocalStorage.getUserPassword() == null) {
+            preferencePassword.setSummary("");
+        } else {
+            user.setPassword(userLocalStorage.getUserPassword());
+            if (preferencePassword.isChecked()) {
+                preferencePassword.setSummary(userLocalStorage.getUserPassword());
+            } else {
+                preferencePassword.setSummary(passwordUnVisible);
+            }
+        }
+    }
+
+    private void initializeNewPasswordPreference(String newPasswordPreferenceKey){
+        preferenceNewPassword = getPreferenceManager().findPreference(newPasswordPreferenceKey);
+        preferenceNewPassword.setSummary(passwordUnVisible);
+        preferenceNewPassword.setOnPreferenceChangeListener(new NewPasswordChangeListener());
+    }
+
+    private void initializeVehicleModelPreference(String vehicleModelPreferenceKey){
+        preferenceVehicleModel = getPreferenceManager().findPreference(vehicleModelPreferenceKey);
+        preferenceVehicleModel.setOnPreferenceChangeListener(new VehicleModelChangeListener());
+        if (vehicleLocalStorage.getVehicleModel() == null){
+            preferenceVehicleModel.setSummary("");
+        } else {
+            preferenceVehicleModel.setSummary(vehicleLocalStorage.getVehicleModel());
+            vehicle.setVehicleModel(vehicleLocalStorage.getVehicleModel());
+        }
+    }
+
+    private void initializeVehicleColorPreference(String vehicleColorPreferenceKey){
+        preferenceVehicleColor = getPreferenceManager().findPreference(vehicleColorPreferenceKey);
+        preferenceVehicleColor.setOnPreferenceChangeListener(new VehicleColorChangeListener());
+        if (vehicleLocalStorage.getVehicleColor() == null){
+            preferenceVehicleColor.setSummary("");
+        } else {
+            preferenceVehicleColor.setSummary(vehicleLocalStorage.getVehicleColor());
+            vehicle.setVehicleColor(vehicleLocalStorage.getVehicleColor());
+        }
+    }
+
+    private void initializeVehicleLicensePlatePreference(String vehicleLicensePlatePreferenceKey){
+        preferenceVehicleLicensePlate = getPreferenceManager().findPreference(vehicleLicensePlatePreferenceKey);
+        preferenceVehicleLicensePlate.setOnPreferenceChangeListener(new VehicleLicensePlateChangeListener());
+        if (vehicleLocalStorage.getVehicleLicensePlate() == null){
+            preferenceVehicleLicensePlate.setSummary("");
+        } else {
+            preferenceVehicleLicensePlate.setSummary(vehicleLocalStorage.getVehicleLicensePlate());
+            vehicle.setVehicleLicensePlate(vehicleLocalStorage.getVehicleLicensePlate());
+        }
+    }
+
+    private class BirthdayChangeListener implements Preference.OnPreferenceChangeListener{
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            user.setBirthday((String) newValue);
+            userLocalStorage.storeBirthday((String) newValue);
+            preference.setSummary((String) newValue);
+            if (!isUserInformationChange) {
+                isUserInformationChange = true;
+            }
+
+            return true;
+        }
+    }
+
+    private class GenderChangeListener implements Preference.OnPreferenceChangeListener {
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            user.setGender((String) newValue);
+            userLocalStorage.storeGender((String) newValue);
+            preference.setSummary((String) newValue);
+            if (!isUserInformationChange) {
+                isUserInformationChange = true;
+            }
+
+            return true;
+        }
+    }
+
+    private class EmailChangeListener implements Preference.OnPreferenceChangeListener {
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            user.setEmail((String) newValue);
+            userLocalStorage.storeEmail((String) newValue);
+            preference.setSummary((String) newValue);
+            if (!isUserInformationChange) {
+                isUserInformationChange = true;
+            }
+
+            return true;
+        }
+    }
+
+    private class PhoneNumberChangeListener implements Preference.OnPreferenceChangeListener {
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            user.setPhoneNumber((String) newValue);
+            userLocalStorage.storePhoneNumber((String) newValue);
+            preference.setSummary((String) newValue);
+            if (!isUserInformationChange) {
+                isUserInformationChange = true;
+            }
+
+            return true;
+        }
+    }
+
+    private class PasswordChangeListener implements Preference.OnPreferenceChangeListener {
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            if (((CheckBoxPreference) preference).isChecked()) {
+                    preference.setSummary(userLocalStorage.getUserPassword());
+            } else {
+                preference.setSummary(passwordUnVisible);
+            }
+
+            return true;
+        }
+    }
+
+    private class NewPasswordChangeListener implements Preference.OnPreferenceChangeListener {
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            user.setPassword((String) newValue);
+            userLocalStorage.storePassword((String) newValue);
+            preference.setSummary(passwordUnVisible);
+            if (preferencePassword.isChecked()) {
+                preferencePassword.setSummary((String) newValue);
+            } else {
+                preferencePassword.setSummary(passwordUnVisible);
+            }
+
+            if (!isUserInformationChange) {
+                isUserInformationChange = true;
+            }
+
+            return true;
+        }
+    }
+
+    private class VehicleModelChangeListener implements Preference.OnPreferenceChangeListener {
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            vehicle.setVehicleModel((String) newValue);
+            vehicleLocalStorage.storeVehicleModel((String) newValue);
+            preference.setSummary((String) newValue);
+            if (!isVehicleInformationChange) {
+                isVehicleInformationChange = true;
+            }
+
+            return true;
+        }
+    }
+
+    private class VehicleColorChangeListener implements Preference.OnPreferenceChangeListener {
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            vehicle.setVehicleColor((String) newValue);
+            vehicleLocalStorage.storeVehicleColor((String) newValue);
+            preference.setSummary((String) newValue);
+            if (!isVehicleInformationChange) {
+                isVehicleInformationChange = true;
+            }
+
+            return true;
+        }
+    }
+
+    private class VehicleLicensePlateChangeListener implements Preference.OnPreferenceChangeListener {
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            vehicle.setVehicleLicensePlate((String) newValue);
+            vehicleLocalStorage.storeVehicleLicensePlate((String) newValue);
+            preference.setSummary((String) newValue);
+            if (!isVehicleInformationChange) {
+                isVehicleInformationChange = true;
+            }
+
+            return true;
+        }
+    }
+
+    private class BirthdayDateListener implements DatePickerDialog.OnDateSetListener {
+        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+            Calendar date = Calendar.getInstance();
+            date.set(year, monthOfYear, dayOfMonth);
+            preferenceBirthday.setSummary(dateFormatter.format(date.getTime()));
+            userLocalStorage.storeBirthday(dateFormatter.format(date.getTime()));
+            if (!isUserInformationChange) {
+                isUserInformationChange = true;
+            }
+
+        }
     }
 }

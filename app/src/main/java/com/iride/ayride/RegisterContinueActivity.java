@@ -165,7 +165,7 @@ public class RegisterContinueActivity extends AppCompatActivity {
         mobileServiceTable.insert(user, new TableOperationCallback<User>() {
             public void onCompleted(User entity, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
-                    userLocalStorage.storeId(entity.getId());
+                    userLocalStorage.storeUser(entity);
                     findViewById(R.id.sign_up_loading_panel).setVisibility(View.GONE);
                     startActivity(new Intent(RegisterContinueActivity.this, HomePageActivity.class));
                 } else {
@@ -199,8 +199,6 @@ public class RegisterContinueActivity extends AppCompatActivity {
         });
     }
 
-
-
     private class CreateAccountListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
@@ -232,7 +230,6 @@ public class RegisterContinueActivity extends AppCompatActivity {
             user.setPassword(passwordText.getText().toString());
             findViewById(R.id.sign_up_loading_panel).setVisibility(View.VISIBLE);
             checkExistenceOfUser(emailText.getText().toString());
-            userLocalStorage.storeUser(user);
             addUserToDB(user);
         }
     }
