@@ -33,6 +33,9 @@
             android:title="VEHICLE COLOR"></EditTextPreference>
         <EditTextPreference
             android:key="facebookDriverVehicleLicensePlate"
-            android:title="LICENSE PLATE"></EditTextPreference>
+            android:title="VEHICLE LICENSE PLATE"></EditTextPreference>
+        <EditTextPreference
+            android:key="facebookDriverVehicleYear"
+            android:title="VEHICLE YEAR"></EditTextPreference>
     </PreferenceCategory>
 </PreferenceScreen>

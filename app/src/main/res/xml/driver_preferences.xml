@@ -32,8 +32,11 @@
             android:key="vehicleColor"
             android:title="VEHICLE COLOR"></EditTextPreference>
         <EditTextPreference
-            android:key="vehicleLicensePlate"
-            android:title="LICENSE PLATE"></EditTextPreference>
+        android:key="vehicleLicensePlate"
+        android:title="VEHICLE LICENSE PLATE"></EditTextPreference>
+        <EditTextPreference
+            android:key="vehicleYear"
+            android:title="VEHICLE YEAR"></EditTextPreference>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/passwordProcesses">
         <CheckBoxPreference

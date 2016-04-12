@@ -38,6 +38,7 @@ public enum PreferenceKeys {
     vehicleModel,
     vehicleColor,
     vehicleLicensePlate,
+    vehicleYear,
 
     /* FACEBOOK DRIVER KEYS */
 
@@ -50,4 +51,5 @@ public enum PreferenceKeys {
     facebookDriverVehicleModel,
     facebookDriverVehicleColor,
     facebookDriverVehicleLicensePlate,
+    facebookDriverVehicleYear
 }

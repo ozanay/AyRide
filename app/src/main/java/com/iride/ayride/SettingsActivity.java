@@ -35,6 +35,7 @@ public class SettingsActivity extends PreferenceActivity {
     private Preference preferenceVehicleModel;
     private Preference preferenceVehicleColor;
     private Preference preferenceVehicleLicensePlate;
+    private Preference preferenceVehicleYear;
     private Preference preferenceName;
     private Preference preferenceSurName;
     private Preference preferenceBirthday;
@@ -115,6 +116,7 @@ public class SettingsActivity extends PreferenceActivity {
         initializeVehicleModelPreference(PreferenceKeys.vehicleModel.toString());
         initializeVehicleColorPreference(PreferenceKeys.vehicleColor.toString());
         initializeVehicleLicensePlatePreference(PreferenceKeys.vehicleLicensePlate.toString());
+        initializeVehicleYearPreference(PreferenceKeys.vehicleYear.toString());
     }
 
     private void initializeFacebookDriverPreferences() {
@@ -127,6 +129,7 @@ public class SettingsActivity extends PreferenceActivity {
         initializeVehicleModelPreference(PreferenceKeys.facebookDriverVehicleModel.toString());
         initializeVehicleColorPreference(PreferenceKeys.facebookDriverVehicleColor.toString());
         initializeVehicleLicensePlatePreference(PreferenceKeys.facebookDriverVehicleLicensePlate.toString());
+        initializeVehicleYearPreference(PreferenceKeys.facebookDriverVehicleYear.toString());
     }
 
     private void initializeLayoutAndPreferences() {
@@ -156,10 +159,28 @@ public class SettingsActivity extends PreferenceActivity {
                     this
             );
             this.userMobileServiceTable = mobileServiceClient.getTable("user_info", User.class);
+            this.vehicleMobileServiceTable = mobileServiceClient.getTable("vehicle_info", Vehicle.class);
         } catch (MalformedURLException e) {
             e.printStackTrace();
             Log.e(loggerTag, e.getCause().toString());
         }
+    }
+
+    private void updateVehicleInformation(Vehicle vehicle) {
+        if (vehicle == null) {
+            Log.d(loggerTag, "Vehicle in update is NULL!");
+            return;
+        }
+
+        vehicleMobileServiceTable.update(vehicle, new TableOperationCallback<User>() {
+            public void onCompleted(User entity, Exception exception, ServiceFilterResponse response) {
+                if (exception == null) {
+                    Log.d(loggerTag, "Vehicle information was updated Successfully!");
+                } else {
+                    Log.e(loggerTag, exception.getMessage());
+                }
+            }
+        });
     }
 
     private void updateUserInformation(User user) {
@@ -316,6 +337,17 @@ public class SettingsActivity extends PreferenceActivity {
         }
     }
 
+    private void initializeVehicleYearPreference(String vehicleYearPreferenceKey){
+        preferenceVehicleYear = getPreferenceManager().findPreference(vehicleYearPreferenceKey);
+        preferenceVehicleYear.setOnPreferenceChangeListener(new VehicleYearChangeListener());
+        if (vehicleLocalStorage.getVehicleYear() == null){
+            preferenceVehicleYear.setSummary("");
+        } else {
+            preferenceVehicleYear.setSummary(vehicleLocalStorage.getVehicleYear());
+            vehicle.setVehicleYear(vehicleLocalStorage.getVehicleYear());
+        }
+    }
+
     private class BirthdayChangeListener implements Preference.OnPreferenceChangeListener{
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -446,6 +478,20 @@ public class SettingsActivity extends PreferenceActivity {
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             vehicle.setVehicleLicensePlate((String) newValue);
             vehicleLocalStorage.storeVehicleLicensePlate((String) newValue);
+            preference.setSummary((String) newValue);
+            if (!isVehicleInformationChange) {
+                isVehicleInformationChange = true;
+            }
+
+            return true;
+        }
+    }
+
+    private class VehicleYearChangeListener implements Preference.OnPreferenceChangeListener {
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            vehicle.setVehicleYear((String) newValue);
+            vehicleLocalStorage.storeVehicleYear((String) newValue);
             preference.setSummary((String) newValue);
             if (!isVehicleInformationChange) {
                 isVehicleInformationChange = true;

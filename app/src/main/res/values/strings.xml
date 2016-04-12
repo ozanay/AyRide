@@ -23,4 +23,10 @@
     <string name="personalInfo">Personal Info</string>
     <string name="passwordProcesses">Password Stuff</string>
     <string name="vehicleInfo">Vehicle Information</string>
+    <string name="addVehicleInfo">ADD VEHICLE INFORMATION</string>
+    <string name="close">CLOSE</string>
+    <string name="vehicleLicensePlateHint">Vehicle License Plate</string>
+    <string name="vehicleYearHint">Vehicle Year</string>
+    <string name="vehicleModelHint">Vehicle Model</string>
+    <string name="vehicleColorHint">Vehicle Color</string>
 </resources>

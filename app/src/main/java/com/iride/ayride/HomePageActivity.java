@@ -1,5 +1,6 @@
 package com.iride.ayride;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,7 +13,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.facebook.AccessToken;
@@ -30,12 +35,20 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
+import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
+import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
+
+import java.net.MalformedURLException;
 
 public class HomePageActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private final static String loggerTag = HomePageActivity.class.getSimpleName();
+    private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
+    private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
     private GoogleMap googleMap;
     private Location currentLocation;
     private GoogleApiClient googleApiClient;
@@ -43,6 +56,18 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     private ImageButton searchRideButton;
     private ImageButton settingsButton;
     private ToggleButton userModeButton;
+    private Vehicle vehicle;
+    private EditText vehicleModel;
+    private EditText vehicleYear;
+    private EditText vehicleColor;
+    private EditText vehicleLicensePlate;
+    private Button closeDialog;
+    private Button addVehicleInformation;
+    private Dialog dialog;
+    private UserLocalStorage userLocalStorage;
+    private VehicleLocalStorage vehicleLocalStorage;
+    private MobileServiceClient mobileServiceClient;
+    private MobileServiceTable vehicleMobileServiceTable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +89,9 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         settingsButton = (ImageButton) findViewById(R.id.settings_button);
         settingsButton.setOnClickListener(new SettingsListener());
         userModeButton = (ToggleButton) findViewById(R.id.toggle_button);
-        userModeButton.setOnClickListener(new UserModeListener());
+        userModeButton.setOnCheckedChangeListener(new UserModeListener());
+        userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES),Context.MODE_PRIVATE));
+        vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES),Context.MODE_PRIVATE));
     }
 
     /**
@@ -220,6 +247,105 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         return !userModeButton.isChecked();
     }
 
+    private void createVehicleRegistrationDialog(){
+        dialog = new Dialog(this);
+        dialog.setContentView(R.layout.vehicle_registration);
+        findViewById(R.id.vehicle_loading_panel).setVisibility(View.GONE);
+        vehicleModel = (EditText) findViewById(R.id.vehicle_model_text);
+        vehicleColor = (EditText) findViewById(R.id.vehicle_color_text);
+        vehicleYear = (EditText) findViewById(R.id.vehicle_year_text);
+        vehicleLicensePlate = (EditText) findViewById(R.id.vehicle_license_plate_text);
+        addVehicleInformation = (Button) findViewById(R.id.add_vehicle_information_button);
+        addVehicleInformation.setOnClickListener(new VehicleRegistrationListener());
+        closeDialog = (Button) findViewById(R.id.dialog_close_button);
+        closeDialog.setOnClickListener(new DialogCloseListener());
+        dialog.show();
+    }
+
+    private void addVehicleInformationToDB(Vehicle vehicle){
+        if (vehicle == null){
+            Log.d(loggerTag, "Vehicle is NULL!");
+            return;
+        }
+
+        initializeMobileService();
+        vehicleMobileServiceTable.insert(vehicle, new TableOperationCallback<User>() {
+            public void onCompleted(User entity, Exception exception, ServiceFilterResponse response) {
+                if (exception == null) {
+                    Log.i(loggerTag, "Service added the vehicle information successfully!");
+                    findViewById(R.id.vehicle_loading_panel).setVisibility(View.GONE);
+                    dialog.dismiss();
+                } else {
+                    Log.e(loggerTag, exception.getMessage());
+                    Toast.makeText(getApplicationContext(), "Vehicle information was not added to system!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void initializeMobileService() {
+        try {
+            this.mobileServiceClient = new MobileServiceClient(
+                    mobileServiceUrl,
+                    mobileServiceAppKey,
+                    this
+            );
+            this.vehicleMobileServiceTable = mobileServiceClient.getTable("vehicle_info", Vehicle.class);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            Log.e(loggerTag, e.getCause().toString());
+        }
+    }
+
+    private class VehicleRegistrationListener implements View.OnClickListener{
+        @Override
+        public void onClick(View v) {
+            findViewById(R.id.vehicle_loading_panel).setVisibility(View.VISIBLE);
+            if (vehicleModel.getText() == null){
+                vehicleModel.requestFocus();
+                vehicleModel.setSelectAllOnFocus(true);
+                return;
+            }
+
+            if (vehicleColor.getText() == null){
+                vehicleColor.requestFocus();
+                vehicleColor.setSelectAllOnFocus(true);
+                return;
+            }
+
+            if (vehicleYear.getText() == null){
+                vehicleYear.requestFocus();
+                vehicleYear.setSelectAllOnFocus(true);
+                return;
+            }
+
+            if (vehicleLicensePlate.getText() == null){
+                vehicleLicensePlate.requestFocus();
+                vehicleLicensePlate.setSelectAllOnFocus(true);
+                return;
+            }
+
+            vehicle.setVehicleId(userLocalStorage.getUserId());
+            vehicleLocalStorage.storeVehicleId(vehicle.getVehicleId());
+            vehicle.setVehicleModel(vehicleModel.getText().toString());
+            vehicleLocalStorage.storeVehicleModel(vehicle.getVehicleModel());
+            vehicle.setVehicleColor(vehicleColor.getText().toString());
+            vehicleLocalStorage.storeVehicleColor(vehicle.getVehicleColor());
+            vehicle.setVehicleYear(vehicleYear.getText().toString());
+            vehicleLocalStorage.storeVehicleYear(vehicle.getVehicleYear());
+            vehicle.setVehicleLicensePlate(vehicleLicensePlate.getText().toString().replace(" ", ""));
+            vehicleLocalStorage.storeVehicleLicensePlate(vehicle.getVehicleLicensePlate());
+            addVehicleInformationToDB(vehicle);
+        }
+    }
+
+    private class DialogCloseListener implements View.OnClickListener{
+        @Override
+        public void onClick(View v) {
+            dialog.dismiss();
+        }
+    }
+
     private class SearchRideListener implements View.OnClickListener{
         @Override
         public void onClick(View v) {
@@ -238,10 +364,20 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
-    private class UserModeListener implements View.OnClickListener{
-        @Override
-        public void onClick(View v) {
+    private class UserModeListener implements CompoundButton.OnCheckedChangeListener{
 
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            if (isChecked){
+                Log.d(loggerTag,"Pedestrian Mode");
+            } else {
+                Log.d(loggerTag,"Driver Mode");
+                try{
+                    createVehicleRegistrationDialog();
+                }catch (Exception exc){
+                    Log.e(loggerTag, exc.getMessage());
+                }
+            }
         }
     }
 }

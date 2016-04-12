@@ -1,26 +1,34 @@
 package com.iride.ayride;
 
-/**
- * Created by user on 11.04.2016.
- */
 public class Vehicle {
 
-
+    @com.google.gson.annotations.SerializedName("id")
     private String vehicleId;
+
+    @com.google.gson.annotations.SerializedName("vehicle_model")
     private String vehicleModel;
+
+    @com.google.gson.annotations.SerializedName("vehicle_color")
     private String vehicleColor;
+
+    @com.google.gson.annotations.SerializedName("vehicle_license_plate")
     private String vehicleLicensePlate;
 
-    public Vehicle(String vehicleModel, String vehicleColor, String vehicleLicensePlate){
+    @com.google.gson.annotations.SerializedName("vehicle_year")
+    private String vehicleYear;
+
+    public Vehicle(String vehicleModel, String vehicleColor, String vehicleLicensePlate, String vehicleYear){
         this.vehicleModel = vehicleModel;
         this.vehicleColor = vehicleColor;
         this.vehicleLicensePlate = vehicleLicensePlate;
+        this.vehicleYear = vehicleYear;
     }
 
     public Vehicle(){
         this.vehicleModel = null;
         this.vehicleColor = null;
         this.vehicleLicensePlate = null;
+        this.vehicleYear = null;
     }
 
     public String getVehicleId() {
@@ -54,4 +62,13 @@ public class Vehicle {
     public void setVehicleLicensePlate(String vehicleLicensePlate) {
         this.vehicleLicensePlate = vehicleLicensePlate;
     }
+
+    public String getVehicleYear() {
+        return vehicleYear;
+    }
+
+    public void setVehicleYear(String vehicleYear) {
+        this.vehicleYear = vehicleYear;
+    }
+
 }
