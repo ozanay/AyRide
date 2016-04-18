@@ -1,6 +1,5 @@
 package com.iride.ayride;
 
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,9 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -43,10 +40,11 @@ import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
 import java.net.MalformedURLException;
 
 public class HomePageActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LocationListener {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener, VehicleRegistrationDialogFragment.VehicleRegistrationDialogListener {
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private final static String loggerTag = HomePageActivity.class.getSimpleName();
+    private final static String vehicleRegistrationDialogFragmentTag = VehicleRegistrationDialogFragment.class.getSimpleName();
     private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
     private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
     private GoogleMap googleMap;
@@ -57,13 +55,6 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     private ImageButton settingsButton;
     private ToggleButton userModeButton;
     private Vehicle vehicle;
-    private EditText vehicleModel;
-    private EditText vehicleYear;
-    private EditText vehicleColor;
-    private EditText vehicleLicensePlate;
-    private Button closeDialog;
-    private Button addVehicleInformation;
-    private Dialog dialog;
     private UserLocalStorage userLocalStorage;
     private VehicleLocalStorage vehicleLocalStorage;
     private MobileServiceClient mobileServiceClient;
@@ -94,19 +85,9 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES),Context.MODE_PRIVATE));
     }
 
-    /**
-     * Manipulates the googleMap once available.
-     * This callback is triggered when the googleMap is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
-        //googleMap.setMyLocationEnabled(true);
     }
 
     @Override
@@ -160,6 +141,32 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     public void onLocationChanged(Location location) {
         currentLocation = location;
         centerInLocation(currentLocation);
+    }
+
+    @Override
+    public void onDialogPositiveClick(VehicleRegistrationDialogFragment dialogFragment) {
+        vehicle = dialogFragment.getVehicleInformations();
+        if (vehicle.getVehicleModel() == null || vehicle.getVehicleLicensePlate() == null
+                || vehicle.getVehicleColor() == null || vehicle.getVehicleYear() == null){
+            Log.d(loggerTag, "Vehicle Is NULL!");
+            userModeButton.setChecked(true);
+            dialogFragment.dismiss();
+            return;
+        }
+
+        storeVehicleInformationToLocal(vehicle);
+        addVehicleInformationToDB(vehicle, dialogFragment);
+    }
+
+    @Override
+    public void onDialogNegativeClick(VehicleRegistrationDialogFragment dialogFragment) {
+        dialogFragment.dismiss();
+        userModeButton.setChecked(true);
+    }
+
+    private void showVehicleRegistrationDialog(){
+        new VehicleRegistrationDialogFragment().show(getFragmentManager(), vehicleRegistrationDialogFragmentTag);
+
     }
 
     private void exitFromTheApp() {
@@ -247,22 +254,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         return !userModeButton.isChecked();
     }
 
-    private void createVehicleRegistrationDialog(){
-        dialog = new Dialog(this);
-        dialog.setContentView(R.layout.vehicle_registration);
-        findViewById(R.id.vehicle_loading_panel).setVisibility(View.GONE);
-        vehicleModel = (EditText) findViewById(R.id.vehicle_model_text);
-        vehicleColor = (EditText) findViewById(R.id.vehicle_color_text);
-        vehicleYear = (EditText) findViewById(R.id.vehicle_year_text);
-        vehicleLicensePlate = (EditText) findViewById(R.id.vehicle_license_plate_text);
-        addVehicleInformation = (Button) findViewById(R.id.add_vehicle_information_button);
-        addVehicleInformation.setOnClickListener(new VehicleRegistrationListener());
-        closeDialog = (Button) findViewById(R.id.dialog_close_button);
-        closeDialog.setOnClickListener(new DialogCloseListener());
-        dialog.show();
-    }
-
-    private void addVehicleInformationToDB(Vehicle vehicle){
+    private void addVehicleInformationToDB(Vehicle vehicle, final VehicleRegistrationDialogFragment vehicleRegistrationDialogFragment){
         if (vehicle == null){
             Log.d(loggerTag, "Vehicle is NULL!");
             return;
@@ -273,11 +265,11 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
             public void onCompleted(User entity, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
                     Log.i(loggerTag, "Service added the vehicle information successfully!");
-                    findViewById(R.id.vehicle_loading_panel).setVisibility(View.GONE);
-                    dialog.dismiss();
+                    vehicleRegistrationDialogFragment.dismiss();
                 } else {
                     Log.e(loggerTag, exception.getMessage());
                     Toast.makeText(getApplicationContext(), "Vehicle information was not added to system!", Toast.LENGTH_SHORT).show();
+                    vehicleRegistrationDialogFragment.dismiss();
                 }
             }
         });
@@ -297,53 +289,13 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
-    private class VehicleRegistrationListener implements View.OnClickListener{
-        @Override
-        public void onClick(View v) {
-            findViewById(R.id.vehicle_loading_panel).setVisibility(View.VISIBLE);
-            if (vehicleModel.getText() == null){
-                vehicleModel.requestFocus();
-                vehicleModel.setSelectAllOnFocus(true);
-                return;
-            }
-
-            if (vehicleColor.getText() == null){
-                vehicleColor.requestFocus();
-                vehicleColor.setSelectAllOnFocus(true);
-                return;
-            }
-
-            if (vehicleYear.getText() == null){
-                vehicleYear.requestFocus();
-                vehicleYear.setSelectAllOnFocus(true);
-                return;
-            }
-
-            if (vehicleLicensePlate.getText() == null){
-                vehicleLicensePlate.requestFocus();
-                vehicleLicensePlate.setSelectAllOnFocus(true);
-                return;
-            }
-
-            vehicle.setVehicleId(userLocalStorage.getUserId());
-            vehicleLocalStorage.storeVehicleId(vehicle.getVehicleId());
-            vehicle.setVehicleModel(vehicleModel.getText().toString());
-            vehicleLocalStorage.storeVehicleModel(vehicle.getVehicleModel());
-            vehicle.setVehicleColor(vehicleColor.getText().toString());
-            vehicleLocalStorage.storeVehicleColor(vehicle.getVehicleColor());
-            vehicle.setVehicleYear(vehicleYear.getText().toString());
-            vehicleLocalStorage.storeVehicleYear(vehicle.getVehicleYear());
-            vehicle.setVehicleLicensePlate(vehicleLicensePlate.getText().toString().replace(" ", ""));
-            vehicleLocalStorage.storeVehicleLicensePlate(vehicle.getVehicleLicensePlate());
-            addVehicleInformationToDB(vehicle);
-        }
-    }
-
-    private class DialogCloseListener implements View.OnClickListener{
-        @Override
-        public void onClick(View v) {
-            dialog.dismiss();
-        }
+    private void storeVehicleInformationToLocal(Vehicle vehicle){
+        vehicle.setVehicleId(userLocalStorage.getUserId());
+        vehicleLocalStorage.storeVehicleId(vehicle.getVehicleId());
+        vehicleLocalStorage.storeVehicleModel(vehicle.getVehicleModel());
+        vehicleLocalStorage.storeVehicleColor(vehicle.getVehicleColor());
+        vehicleLocalStorage.storeVehicleYear(vehicle.getVehicleYear());
+        vehicleLocalStorage.storeVehicleLicensePlate(vehicle.getVehicleLicensePlate());
     }
 
     private class SearchRideListener implements View.OnClickListener{
@@ -370,10 +322,12 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if (isChecked){
                 Log.d(loggerTag,"Pedestrian Mode");
+                Toast.makeText(getApplicationContext(), "Pedestrian Mode", Toast.LENGTH_SHORT).show();
             } else {
-                Log.d(loggerTag,"Driver Mode");
                 try{
-                    createVehicleRegistrationDialog();
+                    Log.d(loggerTag,"Driver Mode");
+                    Toast.makeText(getApplicationContext(), "Driver Mode", Toast.LENGTH_SHORT).show();
+                    showVehicleRegistrationDialog();
                 }catch (Exception exc){
                     Log.e(loggerTag, exc.getMessage());
                 }
