@@ -29,4 +29,6 @@
     <string name="vehicleYearHint">Vehicle Year</string>
     <string name="vehicleModelHint">Vehicle Model</string>
     <string name="vehicleColorHint">Vehicle Color</string>
+    <string name="driverChat">CHAT ROOM</string>
+    <string name="driverCreateRide">CREATE RIDE</string>
 </resources>

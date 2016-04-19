@@ -58,22 +58,48 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="bottom|left">
+
+                <ImageButton
+                    android:id="@+id/driver_chat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/transparent"
+                    android:src="@drawable/chat"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="bottom|right">
 
                 <TextView
+                    android:id="@+id/search_ride_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:text="@string/searchRide"
-                    android:textColor="@color/textColor"
-                    android:textSize="15sp" />
+                    android:textColor="@color/background"
+                    android:textSize="15sp"
+                    android:visibility="visible"/>
 
                 <ImageButton
                     android:id="@+id/searh_ride"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@color/transparent"
-                    android:src="@drawable/search" />
+                    android:src="@drawable/search"
+                    android:visibility="visible"/>
+
+                <ImageButton
+                    android:id="@+id/driver_ride"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/transparent"
+                    android:src="@drawable/car"
+                    android:visibility="gone"/>
             </LinearLayout>
 
         </FrameLayout>

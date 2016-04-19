@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -47,12 +48,16 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     private final static String vehicleRegistrationDialogFragmentTag = VehicleRegistrationDialogFragment.class.getSimpleName();
     private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
     private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
+    private static boolean isHasVehicle;
     private GoogleMap googleMap;
     private Location currentLocation;
     private GoogleApiClient googleApiClient;
     private Marker currentLocationMarker;
     private ImageButton searchRideButton;
     private ImageButton settingsButton;
+    private ImageButton driverChatButton;
+    private ImageButton driverRideButton;
+    private TextView searchRideText;
     private ToggleButton userModeButton;
     private Vehicle vehicle;
     private UserLocalStorage userLocalStorage;
@@ -79,10 +84,32 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         searchRideButton.setOnClickListener(new SearchRideListener());
         settingsButton = (ImageButton) findViewById(R.id.settings_button);
         settingsButton.setOnClickListener(new SettingsListener());
+        driverChatButton = (ImageButton) findViewById(R.id.driver_chat);
+        driverChatButton.setOnClickListener(new DriverChatListener());
+        driverRideButton = (ImageButton) findViewById(R.id.driver_ride);
+        driverRideButton.setOnClickListener(new DriverRideListener());
+        searchRideText = (TextView) findViewById(R.id.search_ride_text);
         userModeButton = (ToggleButton) findViewById(R.id.toggle_button);
         userModeButton.setOnCheckedChangeListener(new UserModeListener());
-        userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES),Context.MODE_PRIVATE));
-        vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES),Context.MODE_PRIVATE));
+        userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
+        vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES), Context.MODE_PRIVATE));
+        isHasVehicle = (vehicleLocalStorage.getVehicleModel() != null ?  true : false);
+
+        if (isHasVehicle){
+            userModeButton.setChecked(false);
+            /*driverChatButton.setVisibility(View.VISIBLE);
+            driverRideButton.setVisibility(View.VISIBLE);
+            searchRideButton.setVisibility(View.GONE);
+            searchRideText.setVisibility(View.GONE);*/
+        }else {
+            userModeButton.setChecked(true);
+/*
+            driverChatButton.setVisibility(View.GONE);
+            driverRideButton.setVisibility(View.GONE);
+            searchRideButton.setVisibility(View.VISIBLE);
+            searchRideText.setVisibility(View.VISIBLE);
+*/
+        }
     }
 
     @Override
@@ -147,7 +174,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     public void onDialogPositiveClick(VehicleRegistrationDialogFragment dialogFragment) {
         vehicle = dialogFragment.getVehicleInformations();
         if (vehicle.getVehicleModel() == null || vehicle.getVehicleLicensePlate() == null
-                || vehicle.getVehicleColor() == null || vehicle.getVehicleYear() == null){
+                || vehicle.getVehicleColor() == null || vehicle.getVehicleYear() == null) {
             Log.d(loggerTag, "Vehicle Is NULL!");
             userModeButton.setChecked(true);
             dialogFragment.dismiss();
@@ -164,7 +191,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         userModeButton.setChecked(true);
     }
 
-    private void showVehicleRegistrationDialog(){
+    private void showVehicleRegistrationDialog() {
         new VehicleRegistrationDialogFragment().show(getFragmentManager(), vehicleRegistrationDialogFragmentTag);
 
     }
@@ -177,7 +204,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         builder.setNegativeButton("Logout",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        if (isFacebookUser()){
+                        if (isFacebookUser()) {
                             LoginManager.getInstance().logOut();
                             startActivity(new Intent(HomePageActivity.this, EntranceActivity.class));
                         } else {
@@ -196,7 +223,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         alert11.show();
     }
 
-    private boolean isFacebookUser(){
+    private boolean isFacebookUser() {
         return AccessToken.getCurrentAccessToken() != null;
     }
 
@@ -250,12 +277,12 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
-    private boolean isDriver() {
+    private boolean isDriverMode() {
         return !userModeButton.isChecked();
     }
 
-    private void addVehicleInformationToDB(Vehicle vehicle, final VehicleRegistrationDialogFragment vehicleRegistrationDialogFragment){
-        if (vehicle == null){
+    private void addVehicleInformationToDB(Vehicle vehicle, final VehicleRegistrationDialogFragment vehicleRegistrationDialogFragment) {
+        if (vehicle == null) {
             Log.d(loggerTag, "Vehicle is NULL!");
             return;
         }
@@ -289,7 +316,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
-    private void storeVehicleInformationToLocal(Vehicle vehicle){
+    private void storeVehicleInformationToLocal(Vehicle vehicle) {
         vehicle.setVehicleId(userLocalStorage.getUserId());
         vehicleLocalStorage.storeVehicleId(vehicle.getVehicleId());
         vehicleLocalStorage.storeVehicleModel(vehicle.getVehicleModel());
@@ -298,7 +325,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         vehicleLocalStorage.storeVehicleLicensePlate(vehicle.getVehicleLicensePlate());
     }
 
-    private class SearchRideListener implements View.OnClickListener{
+    private class SearchRideListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             startActivity(new Intent(HomePageActivity.this, SearchRideActivity.class));
@@ -306,32 +333,57 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         }
     }
 
-    private class SettingsListener implements View.OnClickListener{
+    private class SettingsListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             Intent intent = new Intent(HomePageActivity.this, SettingsActivity.class);
-            intent.putExtra("isDriver", HomePageActivity.this.isDriver());
+            intent.putExtra("isDriver", isDriverMode());
             startActivity(intent);
             finish();
         }
     }
 
-    private class UserModeListener implements CompoundButton.OnCheckedChangeListener{
-
+    private class UserModeListener implements CompoundButton.OnCheckedChangeListener {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            if (isChecked){
-                Log.d(loggerTag,"Pedestrian Mode");
-                Toast.makeText(getApplicationContext(), "Pedestrian Mode", Toast.LENGTH_SHORT).show();
-            } else {
-                try{
-                    Log.d(loggerTag,"Driver Mode");
+            try {
+                if (isChecked) {
+                    Log.d(loggerTag, "Pedestrian Mode");
+                    driverChatButton.setVisibility(View.GONE);
+                    driverRideButton.setVisibility(View.GONE);
+                    searchRideButton.setVisibility(View.VISIBLE);
+                    searchRideText.setVisibility(View.VISIBLE);
+                    Toast.makeText(getApplicationContext(), "Pedestrian Mode", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.d(loggerTag, "Driver Mode");
+                    driverChatButton.setVisibility(View.VISIBLE);
+                    driverRideButton.setVisibility(View.VISIBLE);
+                    searchRideButton.setVisibility(View.GONE);
+                    searchRideText.setVisibility(View.GONE);
                     Toast.makeText(getApplicationContext(), "Driver Mode", Toast.LENGTH_SHORT).show();
-                    showVehicleRegistrationDialog();
-                }catch (Exception exc){
-                    Log.e(loggerTag, exc.getMessage());
+                    if (!isHasVehicle) {
+                        showVehicleRegistrationDialog();
+                    }
                 }
+            } catch (Exception exc) {
+                Log.e(loggerTag, exc.getMessage());
             }
+        }
+    }
+
+    private class DriverChatListener implements View.OnClickListener{
+
+        @Override
+        public void onClick(View v) {
+
+        }
+    }
+
+    private class DriverRideListener implements View.OnClickListener{
+
+        @Override
+        public void onClick(View v) {
+
         }
     }
 }
