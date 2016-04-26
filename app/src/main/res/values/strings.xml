@@ -31,4 +31,5 @@
     <string name="vehicleColorHint">Vehicle Color</string>
     <string name="driverChat">CHAT ROOM</string>
     <string name="driverCreateRide">CREATE RIDE</string>
+    <string name="appointmentTime">Appointment Time</string>
 </resources>

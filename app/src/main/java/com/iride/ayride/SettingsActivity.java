@@ -243,13 +243,6 @@ public class SettingsActivity extends PreferenceActivity {
     }
 
     private void initializeBirthdayPreference(String birthdayPreferenceKey){
-        /*dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
-
-        preferenceBirthday.setOnPreferenceClickListener(new BirthdayPreferenceClickListener());
-        Calendar newCalendar = Calendar.getInstance();
-        birthdayPicker = new DatePickerDialog(this, new BirthdayDateListener(),
-                newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
-        */
         preferenceBirthday = getPreferenceManager().findPreference(birthdayPreferenceKey);
         if (userLocalStorage.getUserBirthday() == null) {
             preferenceBirthday.setSummary("");

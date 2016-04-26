@@ -4,7 +4,7 @@
 
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".RegisterActivity"
+    tools:context=".HomePageActivity"
     android:id="@+id/linearLayout"
     android:weightSum="15"
     android:background="@color/background">
@@ -27,77 +27,62 @@
             android:textColor="@color/textColor"
             android:id="@+id/title_text" />
 
-        <!--  Name Label -->
+        <!--  From Label -->
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp">
-            <EditText android:id="@+id/input_name"
+            <EditText android:id="@+id/from_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textCapWords"
-                android:hint="Name" />
+                android:hint="From" />
         </android.support.design.widget.TextInputLayout>
 
-        <!--  Surname Label -->
+        <!--  To Label -->
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp">
-            <EditText android:id="@+id/input_surname"
+            <EditText android:id="@+id/to_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textCapWords"
-                android:hint="Surname" />
+                android:hint="To" />
         </android.support.design.widget.TextInputLayout>
 
-        <!-- Birthday Picker -->
+        <!-- Appointment Picker -->
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp">
             <EditText
-                android:id="@+id/birthday_text"
+                android:id="@+id/appointment_time_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
-                android:inputType="date"
+                android:inputType="time"
                 android:ems="10"
-                android:hint="Birthday"
-                android:onClick="showDatePickerDialog"/>
+                android:hint="@string/appointmentTime"
+                android:onClick="showTimePickerDialog"/>
         </android.support.design.widget.TextInputLayout>
 
-        <!-- Gender Spinner -->
+        <!--  Available Seat Label -->
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:background="@color/textColor"
-            android:textColor="@color/background"
-            >
-            <Spinner
-                android:id="@+id/gender_spinner"
+            android:layout_marginBottom="8dp">
+            <EditText android:id="@+id/available_seat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:hint="Gender"/>
+                android:inputType="number"
+                android:maxLength="@integer/availableSeatMaxLength"
+                android:hint="Available Seat" />
         </android.support.design.widget.TextInputLayout>
-
-        <!-- Next Button -->
-        <Button
-            android:id="@+id/next_button"
-            android:text="@string/next"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/textColor"
-            android:layout_weight="1"
-            android:textColor="@color/background" />
-
     </LinearLayout>
 </LinearLayout>

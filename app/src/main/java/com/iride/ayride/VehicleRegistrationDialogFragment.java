@@ -11,9 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
-/**
- * Created by user on 18.04.2016.
- */
 public class VehicleRegistrationDialogFragment extends DialogFragment {
 
     private final static String loggerTag = VehicleRegistrationDialogFragment.class.getSimpleName();

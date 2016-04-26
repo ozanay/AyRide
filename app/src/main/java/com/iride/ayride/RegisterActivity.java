@@ -1,12 +1,15 @@
 package com.iride.ayride;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -68,7 +71,8 @@ public class RegisterActivity extends AppCompatActivity {
         dateFormatter = new SimpleDateFormat("dd-MM-yyyy");
         birthdayText = (EditText) findViewById(R.id.birthday_text);
         birthdayText.setInputType(InputType.TYPE_NULL);
-        birthdayText.setOnClickListener(new BirthdayListener());
+        birthdayText.setOnTouchListener(new BirthdayListener());
+        birthdayText.setOnFocusChangeListener(birthdayTextFocusChangeListener);
         Calendar newCalendar = Calendar.getInstance();
         birthdayPicker = new DatePickerDialog(this, new BirthdayDateListener(),
                 newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
@@ -128,6 +132,11 @@ public class RegisterActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private static void hideSoftKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+    }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -168,6 +177,16 @@ public class RegisterActivity extends AppCompatActivity {
         client.disconnect();
     }
 
+    private View.OnFocusChangeListener birthdayTextFocusChangeListener = new View.OnFocusChangeListener() {
+        @Override
+        public void onFocusChange(View v, boolean hasFocus) {
+            if (hasFocus){
+                hideSoftKeyboard(RegisterActivity.this);
+                birthdayPicker.show();
+            }
+        }
+    };
+
     private class GenderListener implements AdapterView.OnItemSelectedListener {
         public void onItemSelected(AdapterView<?> parent, View view,
                                    int pos, long id) {
@@ -184,10 +203,13 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
 
-    private class BirthdayListener implements View.OnClickListener {
-        public void onClick(View v) {
-            // Perform action on click
+    private class BirthdayListener implements View.OnTouchListener {
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            hideSoftKeyboard(RegisterActivity.this);
             birthdayPicker.show();
+            return false;
         }
     }
 

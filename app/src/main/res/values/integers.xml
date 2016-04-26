@@ -2,4 +2,5 @@
 <resources>
     <integer name="phoneNumberMaxLength">14</integer>
     <integer name="normalFormatPhoneNumberMaxLength">10</integer>
+    <integer name="availableSeatMaxLength">2</integer>
 </resources>

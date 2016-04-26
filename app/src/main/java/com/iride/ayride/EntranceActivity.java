@@ -314,7 +314,6 @@ public class EntranceActivity extends AppCompatActivity {
                             EntranceActivity.this.checkExistenceOfFacebookUser(id);
                             String name = EntranceActivity.this.splitName(profile.getName());
                             String surName = profile.getLastName();
-                            //String gender = facebookUser.getString("gender");
                             message = "Id: " + id + "\n" + "Name: " + name + "\n" + "Surname: " + surName + "\n" + "Gender: " + " " + "\n";
                             user.setId(id);
                             user.setName(name);

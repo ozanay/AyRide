@@ -24,6 +24,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -41,11 +42,13 @@ import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
 import java.net.MalformedURLException;
 
 public class HomePageActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener, LocationListener, VehicleRegistrationDialogFragment.VehicleRegistrationDialogListener {
+        GoogleApiClient.OnConnectionFailedListener, LocationListener, VehicleRegistrationDialogFragment.VehicleRegistrationDialogListener,
+        CreateRideDialogFragment.CreateRideDialogListener{
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private final static String loggerTag = HomePageActivity.class.getSimpleName();
     private final static String vehicleRegistrationDialogFragmentTag = VehicleRegistrationDialogFragment.class.getSimpleName();
+    private final static String createRideDialogFragmentTag = CreateRideDialogFragment.class.getSimpleName();
     private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
     private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
     private static boolean isHasVehicle;
@@ -71,7 +74,6 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         setContentView(R.layout.activity_homepage);
         Toolbar toolbar = (Toolbar) findViewById(R.id.homepage_toolbar);
         setSupportActionBar(toolbar);
-        // Obtain the SupportMapFragment and get notified when the googleMap is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -94,21 +96,11 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
         vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES), Context.MODE_PRIVATE));
         isHasVehicle = (vehicleLocalStorage.getVehicleModel() != null ?  true : false);
-
         if (isHasVehicle){
             userModeButton.setChecked(false);
-            /*driverChatButton.setVisibility(View.VISIBLE);
-            driverRideButton.setVisibility(View.VISIBLE);
-            searchRideButton.setVisibility(View.GONE);
-            searchRideText.setVisibility(View.GONE);*/
+
         }else {
             userModeButton.setChecked(true);
-/*
-            driverChatButton.setVisibility(View.GONE);
-            driverRideButton.setVisibility(View.GONE);
-            searchRideButton.setVisibility(View.VISIBLE);
-            searchRideText.setVisibility(View.VISIBLE);
-*/
         }
     }
 
@@ -191,8 +183,23 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         userModeButton.setChecked(true);
     }
 
+    @Override
+    public void onDialogPositiveClick(CreateRideDialogFragment dialogFragment) {
+
+    }
+
+    @Override
+    public void onDialogNegativeClick(CreateRideDialogFragment dialogFragment) {
+        dialogFragment.dismiss();
+    }
+
     private void showVehicleRegistrationDialog() {
         new VehicleRegistrationDialogFragment().show(getFragmentManager(), vehicleRegistrationDialogFragmentTag);
+
+    }
+
+    private void showCreateRideDialog() {
+        new CreateRideDialogFragment().show(getFragmentManager(), createRideDialogFragmentTag);
 
     }
 
@@ -273,6 +280,8 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
+                    .addApi(Places.GEO_DATA_API)
+                    .addApi(Places.PLACE_DETECTION_API)
                     .build();
         }
     }
@@ -324,6 +333,8 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         vehicleLocalStorage.storeVehicleYear(vehicle.getVehicleYear());
         vehicleLocalStorage.storeVehicleLicensePlate(vehicle.getVehicleLicensePlate());
     }
+
+
 
     private class SearchRideListener implements View.OnClickListener {
         @Override
@@ -383,7 +394,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
 
         @Override
         public void onClick(View v) {
-
+            showCreateRideDialog();
         }
     }
 }
