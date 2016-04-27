@@ -95,7 +95,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         userModeButton.setOnCheckedChangeListener(new UserModeListener());
         userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
         vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES), Context.MODE_PRIVATE));
-        isHasVehicle = (vehicleLocalStorage.getVehicleModel() != null ?  true : false);
+        isHasVehicle = (vehicleLocalStorage.getVehicleModel() != null);
         if (isHasVehicle){
             userModeButton.setChecked(false);
 
@@ -215,7 +215,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
                             LoginManager.getInstance().logOut();
                             startActivity(new Intent(HomePageActivity.this, EntranceActivity.class));
                         } else {
-
+                            //Will be implemented
                         }
                     }
                 });
@@ -236,11 +236,8 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
 
     private boolean isGPSEnable() {
         final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            return false;
-        }
+        return manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
-        return true;
     }
 
     private void buildAlertMessageNoGps() {
@@ -333,6 +330,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         vehicleLocalStorage.storeVehicleYear(vehicle.getVehicleYear());
         vehicleLocalStorage.storeVehicleLicensePlate(vehicle.getVehicleLicensePlate());
     }
+
 
 
 

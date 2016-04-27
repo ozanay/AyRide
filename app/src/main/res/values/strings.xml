@@ -1,25 +1,21 @@
 <resources>
-    <string name="app_name">AyRide</string>
-    <string name="action_settings">Settings</string>
-    <string name="facebook_app_id">515347915316889</string>
-    <string name="title_text">AyRide</string>
-    <string name="login">SIGN IN</string>
-    <string name="sign_up">SIGN UP</string>
-    <string name="facebook_login_text">CONNECT WITH FACEBOOK</string>
-    <string name="sign_up_activity_label">SIGN UP</string>
+    <string name="appName">AyRide</string>
+    <string name="facebookAppId">515347915316889</string>
+    <string name="signIn">SIGN IN</string>
+    <string name="signUp">SIGN UP</string>
+    <string name="facebookLoginText">CONNECT WITH FACEBOOK</string>
     <string name="next">NEXT</string>
     <string name="birthday">Birthday</string>
     <string name="createAccount">Create Account</string>
-    <string name="signInButton">SIGN IN</string>
-    <string-array name="gender_array">
+    <string-array name="genderArray">
         <item>Female</item>
         <item>Male</item>
         <item>Other</item>
     </string-array>
-    <string name="title_activity_login">LoginActivity</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="loginActivityTitle">LoginActivity</string>
+    <string name="mapsActivityTitle">Map</string>
     <string name="searchRide">SEARCH RIDE</string>
-    <string name="title_activity_settings">Settings</string>
+    <string name="settingsActivityTitle">Settings</string>
     <string name="personalInfo">Personal Info</string>
     <string name="passwordProcesses">Password Stuff</string>
     <string name="vehicleInfo">Vehicle Information</string>
@@ -32,4 +28,19 @@
     <string name="driverChat">CHAT ROOM</string>
     <string name="driverCreateRide">CREATE RIDE</string>
     <string name="appointmentTime">Appointment Time</string>
+    <string name="fromLabel">FROM:</string>
+    <string name="toLabel">TO:</string>
+    <string name="place_details">
+    <![CDATA[
+        <b>%1$s</b>
+        <br/>
+        <i>Place Id: %2$s</i>
+        <br/>
+        Address: %3$s
+        <br/>
+        Phone: %4$s
+        <br/>
+        Website: %5$s
+    ]]>
+    </string>
 </resources>

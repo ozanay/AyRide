@@ -81,7 +81,7 @@ public class RegisterActivity extends AppCompatActivity {
     private void initializeGender() {
         genders = (Spinner) findViewById(R.id.gender_spinner);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.gender_array, android.R.layout.simple_spinner_item);
+                R.array.genderArray, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         genders.setAdapter(adapter);
         genders.setOnItemSelectedListener(new GenderListener());

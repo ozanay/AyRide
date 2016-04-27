@@ -6,28 +6,34 @@ import android.app.DialogFragment;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TimePicker;
 
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+
 import java.util.Calendar;
 
-public class CreateRideDialogFragment extends DialogFragment implements AdapterView.OnItemClickListener {
+public class CreateRideDialogFragment extends DialogFragment implements PlaceSelectionListener{
 
     private final static String loggerTag = CreateRideDialogFragment.class.getSimpleName();
-    private EditText fromText;
-    private EditText toText;
+    private PlaceAutocompleteFragment fromAutocompleteFragment;
+    private PlaceAutocompleteFragment toAutocompleteFragment;
     private EditText timeText;
     private EditText availableSeatText;
-    private Button createRideButton;
     private TimePickerDialog appointmentTimePickerDialog;
     private Activity inActivity;
 
@@ -56,9 +62,10 @@ public class CreateRideDialogFragment extends DialogFragment implements AdapterV
                             dialogListener.onDialogNegativeClick(CreateRideDialogFragment.this);
                         }
                     });
-
-            fromText = (EditText) view.findViewById(R.id.from_text);
-            toText = (EditText) view.findViewById(R.id.to_text);
+            fromAutocompleteFragment = (PlaceAutocompleteFragment)getFragmentManager().findFragmentById(R.id.from_autocomplete_fragment);
+            fromAutocompleteFragment.setOnPlaceSelectedListener(this);
+            toAutocompleteFragment = (PlaceAutocompleteFragment)getFragmentManager().findFragmentById(R.id.to_autocomplete_fragment);
+            toAutocompleteFragment.setOnPlaceSelectedListener(this);
             availableSeatText = (EditText) view.findViewById(R.id.available_seat);
             timeText = (EditText) view.findViewById(R.id.appointment_time_text);
             timeText.setOnTouchListener(timeTextTouchListener);
@@ -82,7 +89,28 @@ public class CreateRideDialogFragment extends DialogFragment implements AdapterV
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    public void onPlaceSelected(Place place) {
+        Log.i(loggerTag, "Place Selected: " + place.getName());
+    }
+
+    @Override
+    public void onError(Status status) {
+        Log.e(loggerTag, "onError: Status = " + status.toString());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        getFragmentManager().beginTransaction().remove(fromAutocompleteFragment).commit();
+        getFragmentManager().beginTransaction().remove(toAutocompleteFragment).commit();
+    }
+
+    private static Spanned formatPlaceDetails(Resources res, CharSequence name, String id,
+                                              CharSequence address, CharSequence phoneNumber, Uri websiteUri) {
+        Log.e(loggerTag, res.getString(R.string.place_details, name, id, address, phoneNumber,
+                websiteUri));
+        return Html.fromHtml(res.getString(R.string.place_details, name, id, address, phoneNumber,
+                websiteUri));
 
     }
 
