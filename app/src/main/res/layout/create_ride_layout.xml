@@ -91,8 +91,7 @@
                 android:layout_marginTop="8dp"
                 android:ems="10"
                 android:hint="@string/appointmentTime"
-                android:inputType="time"
-                android:onClick="showTimePickerDialog" />
+                android:inputType="time" />
         </android.support.design.widget.TextInputLayout>
 
         <!--  Available Seat Label -->
@@ -109,6 +108,19 @@
                 android:hint="Available Seat"
                 android:inputType="number"
                 android:maxLength="@integer/availableSeatMaxLength" />
+        </android.support.design.widget.TextInputLayout>
+
+        <!--  Comment For Ride -->
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp">
+            <EditText android:id="@+id/commentForRideText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapWords"
+                android:hint="@string/commentForRide" />
         </android.support.design.widget.TextInputLayout>
     </LinearLayout>
 </LinearLayout>

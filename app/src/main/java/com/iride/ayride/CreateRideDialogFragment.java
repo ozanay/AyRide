@@ -24,22 +24,26 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.Calendar;
 
-public class CreateRideDialogFragment extends DialogFragment implements PlaceSelectionListener{
+public class CreateRideDialogFragment extends DialogFragment {
 
     private final static String loggerTag = CreateRideDialogFragment.class.getSimpleName();
     private PlaceAutocompleteFragment fromAutocompleteFragment;
     private PlaceAutocompleteFragment toAutocompleteFragment;
+    private Place fromPlace;
+    private Place toPlace;
     private EditText timeText;
     private EditText availableSeatText;
+    private EditText commentForRideText;
     private TimePickerDialog appointmentTimePickerDialog;
     private Activity inActivity;
 
     public interface CreateRideDialogListener {
-        public void onDialogPositiveClick(CreateRideDialogFragment dialog);
-        public void onDialogNegativeClick(CreateRideDialogFragment dialog);
+        void onDialogPositiveClick(CreateRideDialogFragment dialog);
+        void onDialogNegativeClick(CreateRideDialogFragment dialog);
     }
 
     CreateRideDialogListener dialogListener;
@@ -63,13 +67,14 @@ public class CreateRideDialogFragment extends DialogFragment implements PlaceSel
                         }
                     });
             fromAutocompleteFragment = (PlaceAutocompleteFragment)getFragmentManager().findFragmentById(R.id.from_autocomplete_fragment);
-            fromAutocompleteFragment.setOnPlaceSelectedListener(this);
+            fromAutocompleteFragment.setOnPlaceSelectedListener(fromPlaceSelectionListener);
             toAutocompleteFragment = (PlaceAutocompleteFragment)getFragmentManager().findFragmentById(R.id.to_autocomplete_fragment);
-            toAutocompleteFragment.setOnPlaceSelectedListener(this);
+            toAutocompleteFragment.setOnPlaceSelectedListener(toPlaceSlectionListener);
             availableSeatText = (EditText) view.findViewById(R.id.available_seat);
             timeText = (EditText) view.findViewById(R.id.appointment_time_text);
             timeText.setOnTouchListener(timeTextTouchListener);
             timeText.setOnFocusChangeListener(timeTextFocusChangeListener);
+            commentForRideText = (EditText) view.findViewById(R.id.commentForRideText);
         } catch (Exception exc){
             Log.e(loggerTag, exc.getMessage());
         }
@@ -89,20 +94,50 @@ public class CreateRideDialogFragment extends DialogFragment implements PlaceSel
     }
 
     @Override
-    public void onPlaceSelected(Place place) {
-        Log.i(loggerTag, "Place Selected: " + place.getName());
-    }
-
-    @Override
-    public void onError(Status status) {
-        Log.e(loggerTag, "onError: Status = " + status.toString());
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
         getFragmentManager().beginTransaction().remove(fromAutocompleteFragment).commit();
         getFragmentManager().beginTransaction().remove(toAutocompleteFragment).commit();
+    }
+
+    public LatLng getFromCoordinate(){
+        return CreateRideDialogFragment.this.fromPlace.getLatLng();
+    }
+
+    public LatLng getToCoordinate(){
+        return CreateRideDialogFragment.this.toPlace.getLatLng();
+    }
+
+    public Ride getRideInformation(){
+        Ride ride = new Ride();
+        if (fromPlace == null){
+            return ride;
+        }
+
+        if (toPlace == null){
+            return ride;
+        }
+
+        String time = this.timeText.getText().toString();
+        if (time.replace(" ","").isEmpty()){
+            timeText.requestFocus();
+            timeText.setSelectAllOnFocus(true);
+            return ride;
+        }
+
+        String availableSeat = this.availableSeatText.getText().toString();
+        if (availableSeat.replace(" ","").isEmpty()){
+            availableSeatText.requestFocus();
+            availableSeatText.setSelectAllOnFocus(true);
+            return ride;
+        }
+
+        ride.setRideFrom(fromPlace.getAddress().toString());
+        ride.setRideTo(toPlace.getAddress().toString());
+        ride.setAppointmentTime(time);
+        ride.setAvailableSeat(availableSeat);
+        ride.setRideComment(this.commentForRideText.getText().toString());
+        return ride;
     }
 
     private static Spanned formatPlaceDetails(Resources res, CharSequence name, String id,
@@ -122,7 +157,7 @@ public class CreateRideDialogFragment extends DialogFragment implements PlaceSel
         appointmentTimePickerDialog = new TimePickerDialog(activity, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-                timeText.setText( selectedHour + ":" + selectedMinute);
+                timeText.setText(String.format("%d:%d", selectedHour, selectedMinute));
             }
         }, hour, minute, true);
         appointmentTimePickerDialog.setTitle("Select Time");
@@ -151,6 +186,32 @@ public class CreateRideDialogFragment extends DialogFragment implements PlaceSel
             hideSoftKeyboard(v);
             appointmentTimePickerDialog.show();
             return true;
+        }
+    };
+
+    private PlaceSelectionListener fromPlaceSelectionListener = new PlaceSelectionListener() {
+        @Override
+        public void onPlaceSelected(Place place) {
+            Log.i(loggerTag, "Place Selected: " + place.getName());
+            CreateRideDialogFragment.this.fromPlace = place;
+        }
+
+        @Override
+        public void onError(Status status) {
+            Log.e(loggerTag, "onError: Status = " + status.toString());
+        }
+    };
+
+    private PlaceSelectionListener toPlaceSlectionListener = new PlaceSelectionListener() {
+        @Override
+        public void onPlaceSelected(Place place) {
+            Log.i(loggerTag, "Place Selected: " + place.getName());
+            CreateRideDialogFragment.this.toPlace = place;
+        }
+
+        @Override
+        public void onError(Status status) {
+            Log.e(loggerTag, "onError: Status = " + status.toString());
         }
     };
 }
