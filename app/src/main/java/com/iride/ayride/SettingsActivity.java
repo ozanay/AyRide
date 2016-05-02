@@ -24,8 +24,6 @@ public class SettingsActivity extends PreferenceActivity {
 
     private final static String loggerTag = SettingsActivity.class.getSimpleName();
     private final static String passwordUnVisible = "********";
-    private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
-    private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
     private boolean isFacebookUser;
     private boolean isDriver;
     private boolean isUserInformationChange;
@@ -154,8 +152,8 @@ public class SettingsActivity extends PreferenceActivity {
     private void initializeMobileService() {
         try {
             this.mobileServiceClient = new MobileServiceClient(
-                    mobileServiceUrl,
-                    mobileServiceAppKey,
+                    getString(R.string.azureApiUrl),
+                    getString(R.string.azureApiKey),
                     this
             );
             this.userMobileServiceTable = mobileServiceClient.getTable("user_info", User.class);

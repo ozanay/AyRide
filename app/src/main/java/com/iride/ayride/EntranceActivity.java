@@ -44,9 +44,7 @@ public class EntranceActivity extends AppCompatActivity {
 
     private final static String signIn = "LOGIN";
     private final static String signUp = "SIGNUP";
-    private final static String facebookLogin = "FACEBOOKLOGIN";
-    private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
-    private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
+    private final static String homePage = "HOMEPAGE";
     private final static String loggerTag = EntranceActivity.class.getSimpleName();
     private UserLocalStorage userLocalStorage;
     private Button signInButton;
@@ -78,10 +76,13 @@ public class EntranceActivity extends AppCompatActivity {
             this.signUpButton = (Button) findViewById(R.id.sign_up_button);
             this.signUpButton.setOnClickListener(new SignUpListener());
             userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
+            if (userLocalStorage.getUserName() != null && userLocalStorage.getUserSurName() != null){
+                changeActivity(homePage);
+            }
 
             if (isFacebookUserLoggedIn()){
                 Log.d(loggerTag,"User Already Logged In!");
-                changeActivity(facebookLogin);
+                changeActivity(homePage);
                 finish();
             }
 
@@ -150,7 +151,7 @@ public class EntranceActivity extends AppCompatActivity {
             case signIn:
                 intent = new Intent(EntranceActivity.this, LoginActivity.class);
                 break;
-            case facebookLogin:
+            case homePage:
                 intent = new Intent(EntranceActivity.this, HomePageActivity.class);
                 break;
         }
@@ -176,7 +177,7 @@ public class EntranceActivity extends AppCompatActivity {
                 if (exception == null) {
                     Log.i(loggerTag, "Service added the user successfully!");
                     findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-                    changeActivity(facebookLogin);
+                    changeActivity(homePage);
                     finish();
                 } else {
                     Log.e(loggerTag, exception.getMessage());
@@ -203,8 +204,8 @@ public class EntranceActivity extends AppCompatActivity {
     private void initializeMobileService() {
         try {
             this.mobileServiceClient = new MobileServiceClient(
-                    mobileServiceUrl,
-                    mobileServiceAppKey,
+                    getString(R.string.azureApiUrl),
+                    getString(R.string.azureApiKey),
                     this
             );
             this.mobileServiceTable = mobileServiceClient.getTable("user_info", User.class);
@@ -228,7 +229,7 @@ public class EntranceActivity extends AppCompatActivity {
                         Log.i(loggerTag, "No Existence!");
                     } else {
                         Log.i(loggerTag, "Already Exist!");
-                        changeActivity(facebookLogin);
+                        changeActivity(homePage);
                         finish();
                     }
                 } else {
@@ -288,7 +289,7 @@ public class EntranceActivity extends AppCompatActivity {
                         accessToken = AccessToken.getCurrentAccessToken();
                     } else {
                         Log.d(loggerTag, "No Changed Access Token!");
-                        changeActivity(facebookLogin);
+                        changeActivity(homePage);
                         finish();
                     }
                 }

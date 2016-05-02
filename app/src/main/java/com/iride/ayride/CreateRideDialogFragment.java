@@ -132,8 +132,8 @@ public class CreateRideDialogFragment extends DialogFragment {
             return ride;
         }
 
-        ride.setRideFrom(fromPlace.getAddress().toString());
-        ride.setRideTo(toPlace.getAddress().toString());
+        ride.setRideFrom(fromPlace.getName().toString());
+        ride.setRideTo(toPlace.getName().toString());
         ride.setAppointmentTime(time);
         ride.setAvailableSeat(availableSeat);
         ride.setRideComment(this.commentForRideText.getText().toString());

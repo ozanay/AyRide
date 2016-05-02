@@ -64,8 +64,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     private final static String loggerTag = HomePageActivity.class.getSimpleName();
     private final static String vehicleRegistrationDialogFragmentTag = VehicleRegistrationDialogFragment.class.getSimpleName();
     private final static String createRideDialogFragmentTag = CreateRideDialogFragment.class.getSimpleName();
-    private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
-    private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
+    private static final String SENDER_ID = "1072435786165";
     private static boolean isHasVehicle;
     private GoogleMap googleMap;
     private Location currentLocation;
@@ -80,9 +79,9 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     private Vehicle vehicle;
     private UserLocalStorage userLocalStorage;
     private VehicleLocalStorage vehicleLocalStorage;
-    private MobileServiceClient mobileServiceClient;
     private MobileServiceTable vehicleMobileServiceTable;
     private MobileServiceTable rideMobileServiceTable;
+    private MobileServiceClient mobileServiceClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,10 +110,10 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         userModeButton.setOnCheckedChangeListener(new UserModeListener());
         userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
         vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES), Context.MODE_PRIVATE));
+        this.initializeMobileService();
         isHasVehicle = (vehicleLocalStorage.getVehicleModel() != null);
-        if (isHasVehicle){
+        if (userLocalStorage.isDriverMode()){
             userModeButton.setChecked(false);
-
         }else {
             userModeButton.setChecked(true);
         }
@@ -206,18 +205,22 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
             Ride ride = dialogFragment.getRideInformation();
             if (!Ride.isEmptyRide(ride)){
                 LatLng origin = dialogFragment.getFromCoordinate();
-                Log.d(loggerTag, "Origin Lat: "+origin.latitude+" and Lng: "+origin.longitude);
+                Log.d(loggerTag, "Origin Lat: " + origin.latitude + " and Lng: " + origin.longitude);
                 LatLng destination = dialogFragment.getToCoordinate();
                 Log.d(loggerTag, "Destination Lat: "+destination.latitude+" and Lng: "+destination.longitude);
+                HomePageActivity.this.googleMap.clear();
+                centerInLocation(origin);
                 MarkerOptions markerOpts = new MarkerOptions().position(destination)
                         .title("Destination!")
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-                currentLocationMarker = googleMap.addMarker(markerOpts);
+                googleMap.addMarker(markerOpts);
                 String url = getDirectionsUrl(origin, destination);
                 DownloadTask downloadTask = new DownloadTask();
                 downloadTask.execute(url);
                 ride.setDriverId(userLocalStorage.getUserId());
-                //addRideToDB(ride, dialogFragment);
+                ride.setDriverName(userLocalStorage.getUserName());
+                ride.setDriverSurName(userLocalStorage.getUserSurName());
+                addRideToDB(ride, dialogFragment);
             }
         }catch (Exception exc){
             Log.e(loggerTag, exc.getMessage());
@@ -307,6 +310,18 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         currentLocationMarker = googleMap.addMarker(markerOpts);
     }
 
+    private void centerInLocation(LatLng latLng) {
+        if (currentLocationMarker != null) {
+            currentLocationMarker.remove();
+        }
+
+        CameraPosition camPos = new CameraPosition.Builder().target(latLng).zoom(15).bearing(45).tilt(70).build();
+        CameraUpdate camUpd3 = CameraUpdateFactory.newCameraPosition(camPos);
+        googleMap.animateCamera(camUpd3);
+        MarkerOptions markerOpts = new MarkerOptions().position(latLng).title("You're Here!");
+        currentLocationMarker = googleMap.addMarker(markerOpts);
+    }
+
     private synchronized void buildGoogleApiClient() {
         if (googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(this)
@@ -329,9 +344,9 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
             return;
         }
 
-        initializeMobileService();
-        vehicleMobileServiceTable.insert(vehicle, new TableOperationCallback<User>() {
-            public void onCompleted(User entity, Exception exception, ServiceFilterResponse response) {
+
+        vehicleMobileServiceTable.insert(vehicle, new TableOperationCallback<Vehicle>() {
+            public void onCompleted(Vehicle entity, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
                     Log.i(loggerTag, "Service added the vehicle information successfully!");
                     vehicleRegistrationDialogFragment.dismiss();
@@ -347,8 +362,8 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     private void initializeMobileService() {
         try {
             this.mobileServiceClient = new MobileServiceClient(
-                    mobileServiceUrl,
-                    mobileServiceAppKey,
+                    getString(R.string.azureApiUrl),
+                    getString(R.string.azureApiKey),
                     this
             );
             this.vehicleMobileServiceTable = mobileServiceClient.getTable("vehicle_info", Vehicle.class);
@@ -434,9 +449,8 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
             return;
         }
 
-        initializeMobileService();
-        rideMobileServiceTable.insert(ride, new TableOperationCallback<User>() {
-            public void onCompleted(User entity, Exception exception, ServiceFilterResponse response) {
+        rideMobileServiceTable.insert(ride, new TableOperationCallback<Ride>() {
+            public void onCompleted(Ride entity, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
                     Log.i(loggerTag, "Service added the ride successfully!");
                 } else {
@@ -572,6 +586,8 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
                     driverRideButton.setVisibility(View.GONE);
                     searchRideButton.setVisibility(View.VISIBLE);
                     searchRideText.setVisibility(View.VISIBLE);
+                    userLocalStorage.storeIsDriver(false);
+                    HomePageActivity.this.googleMap.clear();
                     Toast.makeText(getApplicationContext(), "Pedestrian Mode", Toast.LENGTH_SHORT).show();
                 } else {
                     Log.d(loggerTag, "Driver Mode");
@@ -579,11 +595,15 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
                     driverRideButton.setVisibility(View.VISIBLE);
                     searchRideButton.setVisibility(View.GONE);
                     searchRideText.setVisibility(View.GONE);
+                    userLocalStorage.storeIsDriver(true);
+                    HomePageActivity.this.googleMap.clear();
                     Toast.makeText(getApplicationContext(), "Driver Mode", Toast.LENGTH_SHORT).show();
                     if (!isHasVehicle) {
                         showVehicleRegistrationDialog();
                     }
                 }
+
+                centerInLocation(HomePageActivity.this.currentLocation);
             } catch (Exception exc) {
                 Log.e(loggerTag, exc.getMessage());
             }

@@ -30,8 +30,6 @@ public class RegisterContinueActivity extends AppCompatActivity {
     private final static String containsDigit = ".*\\d+.*";
     private final static String letterPattern = "[a-zA-Z]+";
     private final static String numberPattern = "[0-9]+";
-    private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
-    private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
     private final static String loggerTag = RegisterContinueActivity.class.getSimpleName();
     private String name;
     private String surName;
@@ -72,8 +70,8 @@ public class RegisterContinueActivity extends AppCompatActivity {
     private void initializeMobileService(){
         try {
             mobileServiceClient = new MobileServiceClient(
-                    mobileServiceUrl,
-                    mobileServiceAppKey,
+                    getString(R.string.azureApiUrl),
+                    getString(R.string.azureApiKey),
                     this
             );
             mobileServiceTable = mobileServiceClient.getTable("user_info",User.class);

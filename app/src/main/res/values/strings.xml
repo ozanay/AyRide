@@ -44,4 +44,6 @@
     ]]>
     </string>
     <string name="commentForRide">Comment For Ride</string>
+    <string name="azureApiKey">GrNjSZlXnMAQjEblFKkvodLnSJyQHs15</string>
+    <string name="azureApiUrl">https://ayride-backend.azure-mobile.net/</string>
 </resources>

@@ -1,6 +1,8 @@
 package com.iride.ayride;
 
-public class Ride {
+import java.io.Serializable;
+
+public class Ride implements Serializable {
 
     @com.google.gson.annotations.SerializedName("id")
     private String rideId;
@@ -23,8 +25,20 @@ public class Ride {
     @com.google.gson.annotations.SerializedName("ride_driver_id")
     private String driverId;
 
+    @com.google.gson.annotations.SerializedName("ride_driver_name")
+    private String driverName;
+
+    @com.google.gson.annotations.SerializedName("ride_driver_surname")
+    private String driverSurName;
+
     @com.google.gson.annotations.SerializedName("ride_pedestrian_id")
     private String pedestrianId;
+
+    @com.google.gson.annotations.SerializedName("ride_pedestrian_name")
+    private String pedestrianName;
+
+    @com.google.gson.annotations.SerializedName("ride_pedestrian_surname")
+    private String pedestrianSurName;
 
     @com.google.gson.annotations.SerializedName("ride_is_complete")
     private boolean isComplete;
@@ -42,6 +56,38 @@ public class Ride {
         this.pedestrianId = null;
         this.isCanceled = false;
         this.isComplete = false;
+    }
+
+    public String getPedestrianName() {
+        return pedestrianName;
+    }
+
+    public void setPedestrianName(String pedestrianName) {
+        this.pedestrianName = pedestrianName;
+    }
+
+    public String getDriverName() {
+        return driverName;
+    }
+
+    public void setDriverName(String driverName) {
+        this.driverName = driverName;
+    }
+
+    public String getDriverSurName() {
+        return driverSurName;
+    }
+
+    public void setDriverSurName(String driverSurName) {
+        this.driverSurName = driverSurName;
+    }
+
+    public String getPedestrianSurName() {
+        return pedestrianSurName;
+    }
+
+    public void setPedestrianSurName(String pedestrianSurName) {
+        this.pedestrianSurName = pedestrianSurName;
     }
 
     public boolean isCanceled() {

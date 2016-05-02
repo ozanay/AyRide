@@ -28,32 +28,62 @@
             android:textColor="@color/textColor"
             android:textSize="@dimen/title_text_size" />
 
+        <!--  From Label -->
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp">
 
-            <EditText
-                android:id="@+id/from_field"
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="From" />
+                android:text="@string/fromLabel"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/textColor" />
         </android.support.design.widget.TextInputLayout>
 
-        <!-- Password Label -->
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_bottom"
+            android:layout_marginTop="@dimen/margin_top">
+
+            <fragment
+                android:id="@+id/search_from_autocomplete_fragment"
+                class="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </android.support.v7.widget.CardView>
+
+        <!--  To Label -->
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp">
 
-            <EditText
-                android:id="@+id/to_field"
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="To" />
+                android:text="@string/toLabel"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/textColor" />
         </android.support.design.widget.TextInputLayout>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_bottom"
+            android:layout_marginTop="@dimen/margin_top">
+
+            <fragment
+                android:id="@+id/search_to_autocomplete_fragment"
+                class="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </android.support.v7.widget.CardView>
 
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/find_ride_button"

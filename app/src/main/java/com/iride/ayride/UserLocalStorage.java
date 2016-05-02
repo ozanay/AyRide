@@ -17,6 +17,7 @@ public class UserLocalStorage {
     private final static String phoneKey = "PHONEKEY";
     private final static String emailKey = "EMAILKEY";
     private final static String passwordKey = "PASSWORDKEY";
+    private final static String userModeKey = "USERMODEKEY";
     private final static String noInformation = "";
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor sharedPreferencesEditor;
@@ -127,6 +128,12 @@ public class UserLocalStorage {
         storePhoneNumber(user.getPhoneNumber());
         storeEmail(user.getEmail());
         storePassword(user.getPassword());
+        storeIsDriver(false);
+    }
+
+    public void storeIsDriver(boolean isDriverMode) {
+        sharedPreferencesEditor.putBoolean(userModeKey, isDriverMode);
+        sharedPreferencesEditor.apply();
     }
 
     public String getUserId() {
@@ -159,5 +166,10 @@ public class UserLocalStorage {
 
     public String getUserPassword() {
         return sharedPreferences.getString(passwordKey, null);
+    }
+
+    // False -> pedestrian, True -> driver
+    public boolean isDriverMode() {
+        return sharedPreferences.getBoolean(userModeKey, false);
     }
 }
