@@ -1,7 +1,7 @@
 package com.iride.ayride;
 
+import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +11,13 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
+import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
+import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
+import com.microsoft.windowsazure.notifications.NotificationsManager;
+
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 public class SearchResultsActivity extends AppCompatActivity {
@@ -19,7 +26,11 @@ public class SearchResultsActivity extends AppCompatActivity {
     private final static String loggerTag = SearchResultsActivity.class.getSimpleName();
     private ArrayList<Ride> searchResults;
     private ListView ridesListView;
-    ArrayAdapter<String> ridesAdapter;
+    private ArrayAdapter<String> ridesAdapter;
+    private MobileServiceTable rideMobileServiceTable;
+    public static MobileServiceClient mobileServiceClient;
+    private UserLocalStorage userLocalStorage;
+    private RideLocalStorage rideLocalStorage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +44,10 @@ public class SearchResultsActivity extends AppCompatActivity {
                     android.R.layout.simple_list_item_1, formatRides(searchResults));
             ridesListView.setAdapter(ridesAdapter);
             ridesListView.setOnItemClickListener(rideClickListener);
+            userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
+            rideLocalStorage = new RideLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.RIDEPREFERENCES), Context.MODE_PRIVATE));
+            this.initializeMobileService();
+            NotificationsManager.handleNotifications(this, getString(R.string.gcmSenderId), RideRequestHandler.class);
         } catch(Exception exc){
             Log.e(loggerTag, exc.getMessage());
         }
@@ -44,7 +59,8 @@ public class SearchResultsActivity extends AppCompatActivity {
             formattedRides[i] = rides.get(i).getDriverName()+" "+rides.get(i).getDriverSurName()+"\n"
                                 +"FROM: "+rides.get(i).getRideFrom()+"\n"
                                 +"TO: "+rides.get(i).getRideTo()+"\n"
-                                +"TIME: "+rides.get(i).getAppointmentTime()+" Available Seat: "+rides.get(i).getAvailableSeat()+"\n"
+                                +"TIME: "+rides.get(i).getAppointmentTime()+"\n"
+                                +"Available Seat: "+rides.get(i).getAvailableSeat()+"\n"
                                 +"RIDE COMMENT: "+rides.get(i).getRideComment()+"\n"
                                 +end;
         }
@@ -52,13 +68,13 @@ public class SearchResultsActivity extends AppCompatActivity {
         return formattedRides;
     }
 
-    private void makeRequestAlert(String message){
+    private void makeRequestAlert(String message, final int position){
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(message+"\n\n"+"Do you want to make request?")
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                        updateRide(position);
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -70,11 +86,43 @@ public class SearchResultsActivity extends AppCompatActivity {
         alert.show();
     }
 
+    private void initializeMobileService() {
+        try {
+            this.mobileServiceClient = new MobileServiceClient(
+                    getString(R.string.azureApiUrl),
+                    getString(R.string.azureApiKey),
+                    this
+            );
+            this.rideMobileServiceTable = mobileServiceClient.getTable("ride_info", Ride.class);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            Log.e(loggerTag, e.getCause().toString());
+        }
+    }
+
+    private void updateRide(int position){
+        Ride ride = searchResults.get(position);
+        ride.setPedestrianId(userLocalStorage.getUserId());
+        ride.setPedestrianName(userLocalStorage.getUserName());
+        ride.setPedestrianSurName(userLocalStorage.getUserSurName());
+        ride.setPedestrianInstanceId(rideLocalStorage.getOwnInstanceId());
+        rideLocalStorage.storeRide(ride);
+        rideMobileServiceTable.update(ride, new TableOperationCallback<Ride>() {
+            public void onCompleted(Ride entity, Exception exception, ServiceFilterResponse response) {
+                if (exception == null) {
+                    Log.d(loggerTag, "Ride information was updated Successfully!");
+                } else {
+                    Log.e(loggerTag, exception.getMessage());
+                }
+            }
+        });
+    }
+
     private AdapterView.OnItemClickListener rideClickListener = new AdapterView.OnItemClickListener(){
 
         @Override
         public void onItemClick(AdapterView<?> adapter, View view, int position, long id) {
-            SearchResultsActivity.this.makeRequestAlert((String)adapter.getItemAtPosition(position));
+            SearchResultsActivity.this.makeRequestAlert((String)adapter.getItemAtPosition(position), position);
         }
     };
 }

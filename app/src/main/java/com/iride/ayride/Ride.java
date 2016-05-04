@@ -25,6 +25,9 @@ public class Ride implements Serializable {
     @com.google.gson.annotations.SerializedName("ride_driver_id")
     private String driverId;
 
+    @com.google.gson.annotations.SerializedName("ride_driver_instance_id")
+    private String driverInstanceId;
+
     @com.google.gson.annotations.SerializedName("ride_driver_name")
     private String driverName;
 
@@ -33,6 +36,9 @@ public class Ride implements Serializable {
 
     @com.google.gson.annotations.SerializedName("ride_pedestrian_id")
     private String pedestrianId;
+
+    @com.google.gson.annotations.SerializedName("ride_pedestrian_instance_id")
+    private String pedestrianInstanceId;
 
     @com.google.gson.annotations.SerializedName("ride_pedestrian_name")
     private String pedestrianName;
@@ -46,6 +52,12 @@ public class Ride implements Serializable {
     @com.google.gson.annotations.SerializedName("ride_is_canceled")
     private boolean isCanceled;
 
+    @com.google.gson.annotations.SerializedName("ride_is_accepted")
+    private boolean isAccepted;
+
+    @com.google.gson.annotations.SerializedName("ride_is_rejected")
+    private boolean isRejected;
+
     public Ride(){
         this.rideFrom = null;
         this.rideTo = null;
@@ -53,9 +65,49 @@ public class Ride implements Serializable {
         this.availableSeat = null;
         this.rideComment = null;
         this.driverId = null;
+        this.driverInstanceId = null;
+        this.driverName = null;
+        this.driverSurName = null;
         this.pedestrianId = null;
+        this.pedestrianInstanceId = null;
+        this.pedestrianName = null;
+        this.pedestrianSurName = null;
         this.isCanceled = false;
         this.isComplete = false;
+        this.isAccepted = false;
+        this.isRejected = false;
+    }
+
+    public boolean isAccepted() {
+        return isAccepted;
+    }
+
+    public void setIsAccepted(boolean isAccepted) {
+        this.isAccepted = isAccepted;
+    }
+
+    public boolean isRejected() {
+        return isRejected;
+    }
+
+    public void setIsRejected(boolean isRejected) {
+        this.isRejected = isRejected;
+    }
+
+    public String getDriverInstanceId() {
+        return driverInstanceId;
+    }
+
+    public void setDriverInstanceId(String driverInstanceId) {
+        this.driverInstanceId = driverInstanceId;
+    }
+
+    public String getPedestrianInstanceId() {
+        return pedestrianInstanceId;
+    }
+
+    public void setPedestrianInstanceId(String pedestrianInstanceId) {
+        this.pedestrianInstanceId = pedestrianInstanceId;
     }
 
     public String getPedestrianName() {

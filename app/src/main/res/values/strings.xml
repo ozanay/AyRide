@@ -46,4 +46,8 @@
     <string name="commentForRide">Comment For Ride</string>
     <string name="azureApiKey">GrNjSZlXnMAQjEblFKkvodLnSJyQHs15</string>
     <string name="azureApiUrl">https://ayride-backend.azure-mobile.net/</string>
+    <string name="gcmProjectNumber">1072435786165</string>
+    <string name="accept">ACCEPT</string>
+    <string name="reject">REJECT</string>
+    <string name="gcmSenderId">1072435786165</string>
 </resources>

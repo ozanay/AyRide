@@ -5,5 +5,6 @@ package com.iride.ayride;
  */
 public enum StoragePreferences {
     PREFERENCES,
-    VEHICLEPREFERENCES
+    VEHICLEPREFERENCES,
+    RIDEPREFERENCES
 }

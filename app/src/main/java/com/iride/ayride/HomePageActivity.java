@@ -24,6 +24,7 @@ import com.facebook.AccessToken;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
@@ -42,6 +43,7 @@ import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
+import com.microsoft.windowsazure.notifications.NotificationsManager;
 
 import org.json.JSONObject;
 
@@ -64,7 +66,6 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     private final static String loggerTag = HomePageActivity.class.getSimpleName();
     private final static String vehicleRegistrationDialogFragmentTag = VehicleRegistrationDialogFragment.class.getSimpleName();
     private final static String createRideDialogFragmentTag = CreateRideDialogFragment.class.getSimpleName();
-    private static final String SENDER_ID = "1072435786165";
     private static boolean isHasVehicle;
     private GoogleMap googleMap;
     private Location currentLocation;
@@ -79,43 +80,56 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     private Vehicle vehicle;
     private UserLocalStorage userLocalStorage;
     private VehicleLocalStorage vehicleLocalStorage;
+    private RideLocalStorage rideLocalStorage;
     private MobileServiceTable vehicleMobileServiceTable;
     private MobileServiceTable rideMobileServiceTable;
     private MobileServiceClient mobileServiceClient;
+    private GoogleCloudMessaging googleCloudMessaging;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_homepage);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.homepage_toolbar);
-        setSupportActionBar(toolbar);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        if (!isGPSEnable()) {
-            buildAlertMessageNoGps();
-        }
+        try {
+            Toolbar toolbar = (Toolbar) findViewById(R.id.homepage_toolbar);
+            setSupportActionBar(toolbar);
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
+            if (!isGPSEnable()) {
+                buildAlertMessageNoGps();
+            }
 
-        buildGoogleApiClient();
-        searchRideButton = (ImageButton) findViewById(R.id.searh_ride);
-        searchRideButton.setOnClickListener(new SearchRideListener());
-        settingsButton = (ImageButton) findViewById(R.id.settings_button);
-        settingsButton.setOnClickListener(new SettingsListener());
-        driverChatButton = (ImageButton) findViewById(R.id.driver_chat);
-        driverChatButton.setOnClickListener(new DriverChatListener());
-        driverRideButton = (ImageButton) findViewById(R.id.driver_ride);
-        driverRideButton.setOnClickListener(new DriverRideListener());
-        searchRideText = (TextView) findViewById(R.id.search_ride_text);
-        userModeButton = (ToggleButton) findViewById(R.id.toggle_button);
-        userModeButton.setOnCheckedChangeListener(new UserModeListener());
-        userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
-        vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES), Context.MODE_PRIVATE));
-        this.initializeMobileService();
-        isHasVehicle = (vehicleLocalStorage.getVehicleModel() != null);
-        if (userLocalStorage.isDriverMode()){
-            userModeButton.setChecked(false);
-        }else {
-            userModeButton.setChecked(true);
+            buildGoogleApiClient();
+            userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
+            vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES), Context.MODE_PRIVATE));
+            rideLocalStorage = new RideLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.RIDEPREFERENCES), Context.MODE_PRIVATE));
+            this.initializeMobileService();
+            if (rideLocalStorage.getOwnInstanceId() == null) {
+                this.storeRegistrationInstanceId();
+            }
+
+            NotificationsManager.handleNotifications(this, getString(R.string.gcmSenderId), RideRequestHandler.class);
+            searchRideButton = (ImageButton) findViewById(R.id.searh_ride);
+            searchRideButton.setOnClickListener(new SearchRideListener());
+            settingsButton = (ImageButton) findViewById(R.id.settings_button);
+            settingsButton.setOnClickListener(new SettingsListener());
+            driverChatButton = (ImageButton) findViewById(R.id.driver_chat);
+            driverChatButton.setOnClickListener(new DriverChatListener());
+            driverRideButton = (ImageButton) findViewById(R.id.driver_ride);
+            driverRideButton.setOnClickListener(new DriverRideListener());
+            searchRideText = (TextView) findViewById(R.id.search_ride_text);
+            userModeButton = (ToggleButton) findViewById(R.id.toggle_button);
+            userModeButton.setOnCheckedChangeListener(new UserModeListener());
+
+            isHasVehicle = (vehicleLocalStorage.getVehicleModel() != null);
+            if (userLocalStorage.isDriverMode()) {
+                userModeButton.setChecked(false);
+            } else {
+                userModeButton.setChecked(true);
+            }
+        } catch (Exception exc){
+            Log.e(loggerTag, exc.getMessage());
         }
     }
 
@@ -220,6 +234,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
                 ride.setDriverId(userLocalStorage.getUserId());
                 ride.setDriverName(userLocalStorage.getUserName());
                 ride.setDriverSurName(userLocalStorage.getUserSurName());
+                ride.setDriverInstanceId(rideLocalStorage.getOwnInstanceId());
                 addRideToDB(ride, dialogFragment);
             }
         }catch (Exception exc){
@@ -450,9 +465,10 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         }
 
         rideMobileServiceTable.insert(ride, new TableOperationCallback<Ride>() {
-            public void onCompleted(Ride entity, Exception exception, ServiceFilterResponse response) {
+            public void onCompleted(Ride result, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
                     Log.i(loggerTag, "Service added the ride successfully!");
+                    rideLocalStorage.storeRideId(result.getRideId());
                 } else {
                     Log.e(loggerTag, exception.getMessage());
                     Toast.makeText(getApplicationContext(), "Ride was not created!", Toast.LENGTH_SHORT).show();
@@ -461,6 +477,28 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
                 createRideDialogFragment.dismiss();
             }
         });
+    }
+
+    private void storeRegistrationInstanceId() {
+
+        new AsyncTask() {
+            @Override
+            protected Object doInBackground(Object... params) {
+                // TODO Auto-generated method stub
+                try {
+                    if (googleCloudMessaging  == null) {
+                        googleCloudMessaging = GoogleCloudMessaging.getInstance(HomePageActivity.this);
+                    }
+
+                    String regId = googleCloudMessaging.register(getString(R.string.gcmProjectNumber));
+                    rideLocalStorage.storeOwnInstanceId(regId);
+                    Log.d(loggerTag, regId);
+                } catch (IOException ex) {
+                    Log.e(loggerTag,ex.getMessage());
+                }
+                return null;
+            }
+        }.execute(null, null, null);
     }
 
     private class DownloadTask extends AsyncTask<String, Void, String> {
