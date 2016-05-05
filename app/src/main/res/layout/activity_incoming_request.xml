@@ -8,67 +8,63 @@
     android:gravity="center"
     android:orientation="vertical"
     android:weightSum="15"
-    tools:context=".RegisterActivity">
+    tools:context=".IncomingRequestActivity">
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/background"
-        android:orientation="vertical"
-        android:paddingLeft="24dp"
-        android:paddingRight="24dp"
-        android:paddingTop="56dp">
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_weight="14"
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/padding_top_head">
 
         <TextView
             android:id="@+id/request_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:textColor="@color/textColor"
-            android:textSize="45dp" />
+            android:textColor="@color/textColor" />
 
         <RelativeLayout
             android:id="@+id/request_loading_panel"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:visibility="gone"
-            android:gravity="center">
+            android:gravity="center"
+            android:visibility="gone">
 
             <ProgressBar
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:indeterminate="true" />
         </RelativeLayout>
+    </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:weightSum="2">
 
-        <LinearLayout
+        <Button
+            android:id="@+id/accept_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="horizontal"
-            android:weightSum="2">
+            android:background="@color/textColor"
+            android:text="@string/accept"
+            android:textColor="@color/background" />
 
-            <Button
-                android:id="@+id/accept_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@color/textColor"
-                android:text="@string/accept"
-                android:textColor="@color/background" />
-
-            <Button
-                android:id="@+id/reject_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@color/textColor"
-                android:text="@string/reject"
-                android:textColor="@color/background" />
-
-        </LinearLayout>
+        <Button
+            android:id="@+id/reject_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/textColor"
+            android:text="@string/reject"
+            android:textColor="@color/background" />
 
     </LinearLayout>
 </LinearLayout>

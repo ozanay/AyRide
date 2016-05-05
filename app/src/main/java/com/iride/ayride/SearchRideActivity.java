@@ -85,7 +85,6 @@ public class SearchRideActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "NO Ride is Found", Toast.LENGTH_SHORT).show();
                         } else {
                             ridesList = (ArrayList<Ride>) result;
-                            Toast.makeText(getApplicationContext(), "There is at least one result", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(SearchRideActivity.this, SearchResultsActivity.class);
                             intent.putExtra("searchResults", ridesList);
                             startActivity(intent);

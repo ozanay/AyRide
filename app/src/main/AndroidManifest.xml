@@ -23,7 +23,6 @@
         android:protectionLevel="signature" />
 
     <uses-permission android:name="com.iride.ayride.locationroutedirectionmapv2.permission.MAPS_RECEIVE" />
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
 
@@ -33,7 +32,6 @@
 
     <uses-permission android:name="com.iride.ayride.permission.C2D_MESSAGE" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
@@ -118,7 +116,8 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".IncomingRequestActivity"></activity>
+        <activity android:name=".IncomingRequestActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

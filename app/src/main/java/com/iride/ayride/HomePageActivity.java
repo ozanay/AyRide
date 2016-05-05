@@ -4,16 +4,22 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Interpolator;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -22,10 +28,15 @@ import android.widget.ToggleButton;
 
 import com.facebook.AccessToken;
 import com.facebook.login.LoginManager;
+import com.firebase.client.Firebase;
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.GeoQuery;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdate;
@@ -33,16 +44,21 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+import com.microsoft.windowsazure.mobileservices.MobileServiceException;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
+import com.microsoft.windowsazure.mobileservices.table.TableQueryCallback;
 import com.microsoft.windowsazure.notifications.NotificationsManager;
 
 import org.json.JSONObject;
@@ -60,21 +76,20 @@ import java.util.List;
 
 public class HomePageActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener, VehicleRegistrationDialogFragment.VehicleRegistrationDialogListener,
-        CreateRideDialogFragment.CreateRideDialogListener{
+        CreateRideDialogFragment.CreateRideDialogListener, GoogleMap.OnCameraChangeListener{
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private final static String loggerTag = HomePageActivity.class.getSimpleName();
     private final static String vehicleRegistrationDialogFragmentTag = VehicleRegistrationDialogFragment.class.getSimpleName();
     private final static String createRideDialogFragmentTag = CreateRideDialogFragment.class.getSimpleName();
-    private static boolean isHasVehicle;
     private GoogleMap googleMap;
     private Location currentLocation;
     private GoogleApiClient googleApiClient;
     private Marker currentLocationMarker;
     private ImageButton searchRideButton;
-    private ImageButton settingsButton;
     private ImageButton driverChatButton;
     private ImageButton driverRideButton;
+    private ImageButton rideCancelButton;
     private TextView searchRideText;
     private ToggleButton userModeButton;
     private Vehicle vehicle;
@@ -83,14 +98,22 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     private RideLocalStorage rideLocalStorage;
     private MobileServiceTable vehicleMobileServiceTable;
     private MobileServiceTable rideMobileServiceTable;
-    private MobileServiceClient mobileServiceClient;
+    private ArrayList<Ride> ridesList;
     private GoogleCloudMessaging googleCloudMessaging;
+    private Circle searchCircle;
+    private HashMap<String, Marker> markers;
+    private HashMap<String, String> markersIdKeyPair;
+    private Firebase firebase;
+    private GeoFire geoFire;
+    private GeoQuery geoQuery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_homepage);
         try {
+            this.markers = new HashMap<>();
+            this.markersIdKeyPair = new HashMap<>();
             Toolbar toolbar = (Toolbar) findViewById(R.id.homepage_toolbar);
             setSupportActionBar(toolbar);
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -100,34 +123,17 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
                 buildAlertMessageNoGps();
             }
 
-            buildGoogleApiClient();
-            userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
-            vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES), Context.MODE_PRIVATE));
-            rideLocalStorage = new RideLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.RIDEPREFERENCES), Context.MODE_PRIVATE));
+            this.buildGoogleApiClient();
+            this.initializeLocalStores();
             this.initializeMobileService();
             if (rideLocalStorage.getOwnInstanceId() == null) {
                 this.storeRegistrationInstanceId();
             }
 
             NotificationsManager.handleNotifications(this, getString(R.string.gcmSenderId), RideRequestHandler.class);
-            searchRideButton = (ImageButton) findViewById(R.id.searh_ride);
-            searchRideButton.setOnClickListener(new SearchRideListener());
-            settingsButton = (ImageButton) findViewById(R.id.settings_button);
-            settingsButton.setOnClickListener(new SettingsListener());
-            driverChatButton = (ImageButton) findViewById(R.id.driver_chat);
-            driverChatButton.setOnClickListener(new DriverChatListener());
-            driverRideButton = (ImageButton) findViewById(R.id.driver_ride);
-            driverRideButton.setOnClickListener(new DriverRideListener());
-            searchRideText = (TextView) findViewById(R.id.search_ride_text);
-            userModeButton = (ToggleButton) findViewById(R.id.toggle_button);
-            userModeButton.setOnCheckedChangeListener(new UserModeListener());
+            this.initializeLayoutEntities();
+            this.initializeFirebaseEntities();
 
-            isHasVehicle = (vehicleLocalStorage.getVehicleModel() != null);
-            if (userLocalStorage.isDriverMode()) {
-                userModeButton.setChecked(false);
-            } else {
-                userModeButton.setChecked(true);
-            }
         } catch (Exception exc){
             Log.e(loggerTag, exc.getMessage());
         }
@@ -136,7 +142,9 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.googleMap = googleMap;
-        googleMap.setTrafficEnabled(true);
+        this.googleMap.setTrafficEnabled(true);
+        this.googleMap.setOnCameraChangeListener(this);
+        this.googleMap.setOnMarkerClickListener(new UserMarkerClickListener());
     }
 
     @Override
@@ -160,11 +168,24 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
 
     @Override
     public void onConnected(Bundle bundle) {
+        Log.d(loggerTag, "GOOGLE API CONNECTED!");
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
         currentLocation = LocationServices.FusedLocationApi.getLastLocation(
                 googleApiClient);
-        if (currentLocation != null) {
-            centerInLocation(currentLocation);
+        if (currentLocation == null) {
+            LocationRequest locationRequest = new LocationRequest();
+            locationRequest.setInterval(30000);
+            locationRequest.setFastestInterval(1000);
+            locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            locationRequest.setSmallestDisplacement(2);
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
         }
+
+        centerInLocation(currentLocation);
     }
 
     @Override
@@ -247,6 +268,19 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         dialogFragment.dismiss();
     }
 
+    @Override
+    public void onCameraChange(CameraPosition cameraPosition) {
+        try {
+            LatLng center = cameraPosition.target;
+            Log.d(loggerTag, center.latitude + " " + center.longitude);
+            double radius = zoomLevelToRadius(cameraPosition.zoom);
+            this.searchCircle.setCenter(center);
+            this.searchCircle.setRadius(radius);
+        } catch (Exception exc) {
+            Log.d(loggerTag, "OnCameraChange: " + exc.getMessage());
+        }
+    }
+
     private void showVehicleRegistrationDialog() {
         new VehicleRegistrationDialogFragment().show(getFragmentManager(), vehicleRegistrationDialogFragmentTag);
 
@@ -318,10 +352,20 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         }
 
         LatLng myLaLn = new LatLng(location.getLatitude(), location.getLongitude());
+        this.searchCircle = this.googleMap.addCircle(new CircleOptions().center(myLaLn).radius(1000));
+        this.searchCircle.setFillColor(Color.argb(66, 255, 0, 255));
+        this.searchCircle.setStrokeColor(Color.argb(66, 0, 0, 0));
         CameraPosition camPos = new CameraPosition.Builder().target(myLaLn).zoom(15).bearing(45).tilt(70).build();
         CameraUpdate camUpd3 = CameraUpdateFactory.newCameraPosition(camPos);
         googleMap.animateCamera(camUpd3);
-        MarkerOptions markerOpts = new MarkerOptions().position(myLaLn).title("You're Here!");
+        BitmapDescriptor icon;
+        if (userLocalStorage.isDriverMode()){
+            icon = BitmapDescriptorFactory.fromResource(R.drawable.car);
+        } else {
+            icon = BitmapDescriptorFactory.fromResource(R.drawable.person);
+        }
+
+        MarkerOptions markerOpts = new MarkerOptions().position(myLaLn).title("You're Here!").icon(icon);
         currentLocationMarker = googleMap.addMarker(markerOpts);
     }
 
@@ -330,22 +374,37 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
             currentLocationMarker.remove();
         }
 
+        this.searchCircle = this.googleMap.addCircle(new CircleOptions().center(latLng).radius(1000));
+        this.searchCircle.setFillColor(Color.argb(66, 255, 0, 255));
+        this.searchCircle.setStrokeColor(Color.argb(66, 0, 0, 0));
         CameraPosition camPos = new CameraPosition.Builder().target(latLng).zoom(15).bearing(45).tilt(70).build();
         CameraUpdate camUpd3 = CameraUpdateFactory.newCameraPosition(camPos);
         googleMap.animateCamera(camUpd3);
-        MarkerOptions markerOpts = new MarkerOptions().position(latLng).title("You're Here!");
+        BitmapDescriptor icon;
+        if (userLocalStorage.isDriverMode()){
+            icon = BitmapDescriptorFactory.fromResource(R.drawable.car);
+        } else {
+            icon = BitmapDescriptorFactory.fromResource(R.drawable.person);
+        }
+
+        MarkerOptions markerOpts = new MarkerOptions().position(latLng).title("You're Here!").icon(icon);
         currentLocationMarker = googleMap.addMarker(markerOpts);
     }
 
     private synchronized void buildGoogleApiClient() {
-        if (googleApiClient == null) {
-            googleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .addApi(Places.GEO_DATA_API)
-                    .addApi(Places.PLACE_DETECTION_API)
-                    .build();
+        try {
+            if (googleApiClient == null) {
+                googleApiClient = new GoogleApiClient.Builder(this)
+                        .addConnectionCallbacks(this)
+                        .addOnConnectionFailedListener(this)
+                        .addApi(LocationServices.API)
+                        .addApi(Places.GEO_DATA_API)
+                        .addApi(Places.PLACE_DETECTION_API)
+                        .build();
+            }
+        } catch (Exception exc) {
+            Log.e(loggerTag, exc.getMessage());
+            Log.e(loggerTag, String.valueOf(exc.getCause()));
         }
     }
 
@@ -376,7 +435,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
 
     private void initializeMobileService() {
         try {
-            this.mobileServiceClient = new MobileServiceClient(
+            MobileServiceClient mobileServiceClient = new MobileServiceClient(
                     getString(R.string.azureApiUrl),
                     getString(R.string.azureApiKey),
                     this
@@ -398,25 +457,14 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         vehicleLocalStorage.storeVehicleLicensePlate(vehicle.getVehicleLicensePlate());
     }
 
-    private String getDirectionsUrl(LatLng origin,LatLng dest){
+    private String getDirectionsUrl(LatLng origin, LatLng dest) {
 
-        // Origin of route
-        String str_origin = "origin="+origin.latitude+","+origin.longitude;
-
-        // Destination of route
-        String str_dest = "destination="+dest.latitude+","+dest.longitude;
-
-        // Sensor enabled
+        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
+        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
         String sensor = "sensor=false";
-
-        // Building the parameters to the web service
-        String parameters = str_origin+"&"+str_dest+"&"+sensor;
-
-        // Output format
+        String parameters = str_origin + "&" + str_dest + "&" + sensor;
         String output = "json";
-
-        // Building the url to the web service
-        return  "https://maps.googleapis.com/maps/api/directions/"+output+"?"+parameters;
+        return "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
     }
 
     private String downloadUrl(String strUrl) throws IOException {
@@ -458,7 +506,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         return data;
     }
 
-    private void addRideToDB(Ride ride, final CreateRideDialogFragment createRideDialogFragment){
+    private void addRideToDB(final Ride ride, final CreateRideDialogFragment createRideDialogFragment){
         if (ride == null) {
             Log.d(loggerTag, "Ride is NULL!");
             return;
@@ -468,7 +516,13 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
             public void onCompleted(Ride result, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
                     Log.i(loggerTag, "Service added the ride successfully!");
-                    rideLocalStorage.storeRideId(result.getRideId());
+                    if (result == null) {
+                        Log.i(loggerTag, "Result is null from ride insertion!");
+                    } else {
+                        ride.setDriverId(result.getDriverId());
+                    }
+
+                    rideLocalStorage.storeRide(ride);
                 } else {
                     Log.e(loggerTag, exception.getMessage());
                     Toast.makeText(getApplicationContext(), "Ride was not created!", Toast.LENGTH_SHORT).show();
@@ -484,7 +538,6 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         new AsyncTask() {
             @Override
             protected Object doInBackground(Object... params) {
-                // TODO Auto-generated method stub
                 try {
                     if (googleCloudMessaging  == null) {
                         googleCloudMessaging = GoogleCloudMessaging.getInstance(HomePageActivity.this);
@@ -499,6 +552,169 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
                 return null;
             }
         }.execute(null, null, null);
+    }
+
+    private void animateMarkerTo(final Marker marker, final double lat, final double lng) {
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        final long DURATION_MS = 1000;
+        final Interpolator interpolator = new AccelerateDecelerateInterpolator();
+        final LatLng startPosition = marker.getPosition();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                float elapsed = SystemClock.uptimeMillis() - start;
+                float t = elapsed / DURATION_MS;
+                float v = interpolator.getInterpolation(t);
+
+                double currentLat = (lat - startPosition.latitude) * v + startPosition.latitude;
+                double currentLng = (lng - startPosition.longitude) * v + startPosition.longitude;
+                marker.setPosition(new LatLng(currentLat, currentLng));
+
+                // if animation is not finished yet, repeat
+                if (t < 1) {
+                    handler.postDelayed(this, 16);
+                }
+            }
+        });
+    }
+
+    private double zoomLevelToRadius(double zoomLevel) {
+        return 16384000 / Math.pow(2, zoomLevel);
+    }
+
+    private void getAllRides() {
+        try {
+            rideMobileServiceTable.execute(new TableQueryCallback<Ride>() {
+                public void onCompleted(List<Ride> result, int count, Exception exception, ServiceFilterResponse response) {
+                    if (exception == null) {
+                        findViewById(R.id.search_ride_loading_panel).setVisibility(View.GONE);
+                        if (result.isEmpty() || result == null) {
+                            Log.i(loggerTag, "There is NO Ride!");
+                            Toast.makeText(getApplicationContext(), "NO Ride is Found", Toast.LENGTH_SHORT).show();
+                        } else {
+                            ridesList = (ArrayList<Ride>) result;
+                        }
+                    } else {
+                        Log.e(loggerTag, exception.getCause().toString());
+                    }
+                }
+            });
+        } catch (MobileServiceException e) {
+            Log.e(loggerTag, e.getMessage());
+        }
+    }
+
+    private MarkerOptions getDriverMarker(String key, GeoLocation location) {
+        String snippet = "";
+        for (Ride ride : ridesList) {
+            if (ride.getDriverId().equals(key)) {
+                snippet = getDriverMarkerSnippet(ride);
+                break;
+            }
+        }
+
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.car);
+        return new MarkerOptions()
+                .position(new LatLng(location.latitude, location.longitude)).icon(icon).snippet(snippet);
+    }
+
+    private MarkerOptions getPedestrianMarker(String key, GeoLocation location) {
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.person);
+        return new MarkerOptions()
+                .position(new LatLng(location.latitude, location.longitude)).icon(icon).title("Name Surname");
+    }
+
+    private String getDriverMarkerSnippet(Ride ride) {
+        return "From: " + ride.getRideFrom() + " To: " + ride.getRideTo();
+    }
+
+    private String getRequestAlertMessage(Ride ride) {
+        return ride.getDriverName() + " " + ride.getDriverSurName() + "\n"
+                + "FROM: " + ride.getRideFrom() + "\n"
+                + "TO: " + ride.getRideTo() + "\n"
+                + "TIME: " + ride.getAppointmentTime() + "\n"
+                + "AVAILABLE SEAT: " + ride.getAvailableSeat() + "\n"
+                + "RIDE COMMENT: " + ride.getRideComment() + "\n";
+    }
+
+    private void buildRequestAlert(final Ride ride) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        String message = getRequestAlertMessage(ride);
+        builder.setMessage(message + "\n\n" + "Do you want to make request?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        ride.setPedestrianId(userLocalStorage.getUserId());
+                        ride.setPedestrianInstanceId(rideLocalStorage.getOwnInstanceId());
+                        ride.setPedestrianName(userLocalStorage.getUserName());
+                        ride.setPedestrianSurName(userLocalStorage.getUserSurName());
+                        rideLocalStorage.storeRide(ride);
+                        HomePageActivity.this.makeRequestToRide(ride);
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void makeRequestToRide(final Ride ride) {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    rideMobileServiceTable.update(ride).get();
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+
+                        }
+                    });
+                } catch (Exception exception) {
+                    Log.e(loggerTag, exception.getMessage());
+                }
+                return null;
+            }
+        }.execute();
+    }
+
+    private void initializeLocalStores(){
+        userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
+        vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES), Context.MODE_PRIVATE));
+        rideLocalStorage = new RideLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.RIDEPREFERENCES), Context.MODE_PRIVATE));
+    }
+
+    private void initializeLayoutEntities(){
+        this.searchRideButton = (ImageButton) findViewById(R.id.searh_ride);
+        this.searchRideButton.setOnClickListener(new SearchRideListener());
+        ImageButton settingsButton = (ImageButton) findViewById(R.id.settings_button);
+        settingsButton.setOnClickListener(new SettingsListener());
+        this.driverChatButton = (ImageButton) findViewById(R.id.driver_chat);
+        this.driverChatButton.setOnClickListener(new DriverChatListener());
+        this.driverRideButton = (ImageButton) findViewById(R.id.driver_ride);
+        this.driverRideButton.setOnClickListener(new DriverRideListener());
+        this.rideCancelButton = (ImageButton) findViewById(R.id.ride_cancel);
+        this.rideCancelButton.setOnClickListener(new RideCancelListener());
+        this.searchRideText = (TextView) findViewById(R.id.search_ride_text);
+        this.userModeButton = (ToggleButton) findViewById(R.id.toggle_button);
+        this.userModeButton.setOnCheckedChangeListener(new UserModeListener());
+        if (this.userLocalStorage.isDriverMode()) {
+            this.userModeButton.setChecked(false);
+        } else {
+            this.userModeButton.setChecked(true);
+        }
+    }
+
+    private void initializeFirebaseEntities(){
+        Firebase.setAndroidContext(this);
+        this.firebase = new Firebase(getString(R.string.firebaseUrl));
+        this.firebase.child(this.userLocalStorage.getUserId()).setValue(String.valueOf(this.userLocalStorage.isDriverMode()));
+        this.geoFire = new GeoFire(new Firebase(getString(R.string.firebaseCoordinates)));
+        this.geoFire.setLocation(this.userLocalStorage.getUserId(),new GeoLocation(this.currentLocation.getLatitude(), this.currentLocation.getLongitude()));
+        this.geoQuery = geoFire.queryAtLocation(new GeoLocation(this.currentLocation.getLatitude(), this.currentLocation.getLongitude()), 1);
     }
 
     private class DownloadTask extends AsyncTask<String, Void, String> {
@@ -636,7 +852,7 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
                     userLocalStorage.storeIsDriver(true);
                     HomePageActivity.this.googleMap.clear();
                     Toast.makeText(getApplicationContext(), "Driver Mode", Toast.LENGTH_SHORT).show();
-                    if (!isHasVehicle) {
+                    if (vehicleLocalStorage.getVehicleId() == null) {
                         showVehicleRegistrationDialog();
                     }
                 }
@@ -661,6 +877,49 @@ public class HomePageActivity extends AppCompatActivity implements OnMapReadyCal
         @Override
         public void onClick(View v) {
             showCreateRideDialog();
+        }
+    }
+
+    private class RideCancelListener implements View.OnClickListener {
+
+        @Override
+        public void onClick(View v) {
+            Ride ride = rideLocalStorage.getRide();
+            //rideMobileServiceTable.delete(ride.getDriverId());
+            rideLocalStorage.clearRideLocalStorage();
+            HomePageActivity.this.googleMap.clear();
+            HomePageActivity.this.centerInLocation(currentLocation);
+            driverRideButton.setVisibility(View.VISIBLE);
+            rideCancelButton.setVisibility(View.GONE);
+        }
+    }
+
+    private class UserMarkerClickListener implements GoogleMap.OnMarkerClickListener {
+
+        @Override
+        public boolean onMarkerClick(Marker marker) {
+            String markerId = markersIdKeyPair.get(marker.getId());
+            LatLng currentPosition = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            if (marker.getPosition().equals(currentPosition)) {
+                Log.d(loggerTag, "My Marker");
+                marker.showInfoWindow();
+                return true;
+            }
+
+            if (userLocalStorage.isDriverMode()) {
+                Log.d(loggerTag, "Pedestrian clicked!");
+                marker.showInfoWindow();
+            } else {
+                for (Ride ride : ridesList) {
+                    if (ride.getDriverId().equals(markerId)) {
+                        marker.hideInfoWindow();
+                        buildRequestAlert(ride);
+                        break;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

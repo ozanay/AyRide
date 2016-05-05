@@ -19,7 +19,11 @@ android {
         }
     }
 
-    useLibrary 'org.apache.http.legacy'
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE-FIREBASE.txt'
+        exclude 'META-INF/NOTICE'
+    }
 }
 
 repositories {
@@ -41,4 +45,6 @@ dependencies {
     compile 'com.google.android.gms:play-services-location:8.4.0'
     compile 'com.google.android.gms:play-services-gcm:8.4.0'
     compile(group: 'com.microsoft.azure', name: 'azure-notifications-handler', version: '1.0.1', ext: 'jar')
+    compile 'com.firebase:firebase-client-android:2.5.2+'
+    compile 'com.firebase:geofire:1.1.0+'
 }

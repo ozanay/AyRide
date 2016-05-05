@@ -18,7 +18,6 @@ import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
 import com.microsoft.windowsazure.notifications.NotificationsManager;
 
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 
 public class IncomingRequestActivity extends AppCompatActivity {
 
@@ -37,8 +36,12 @@ public class IncomingRequestActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_incoming_request);
         try {
-            ArrayList<Ride> rides = (ArrayList<Ride>) getIntent().getSerializableExtra("Ride");
-            this.ride = rides.get(0);
+            rideLocalStorage = new RideLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.RIDEPREFERENCES), Context.MODE_PRIVATE));
+            this.ride = rideLocalStorage.getRide();
+            if(ride == null){
+                Log.d(loggerTag, "RIDE IS NULL");
+            }
+
             acceptButton = (Button) findViewById(R.id.accept_button);
             acceptButton.setOnClickListener(acceptButtonListener);
             rejectButton = (Button) findViewById(R.id.reject_button);
@@ -48,7 +51,7 @@ public class IncomingRequestActivity extends AppCompatActivity {
             textView = (TextView) findViewById(R.id.request_message);
             textView.setText(convertRideToMessage(ride));
             NotificationsManager.handleNotifications(this, getString(R.string.gcmSenderId), RideRequestHandler.class);
-            rideLocalStorage = new RideLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.RIDEPREFERENCES), Context.MODE_PRIVATE));
+
         } catch(Exception exc){
             Log.e(loggerTag, exc.getMessage());
         }
@@ -60,7 +63,7 @@ public class IncomingRequestActivity extends AppCompatActivity {
         //return "Wants To Share Your Ride!";
     }
 
-    private void updateRide(Ride ride){
+    private void initializeMobileService(){
         try {
             this.mobileServiceClient = new MobileServiceClient(
                     getString(R.string.azureApiUrl),
@@ -68,21 +71,24 @@ public class IncomingRequestActivity extends AppCompatActivity {
                     this
             );
             this.mobileServiceTable = mobileServiceClient.getTable("ride_info", Ride.class);
-            this.mobileServiceTable.update(ride, new TableOperationCallback<Ride>() {
-                @Override
-                public void onCompleted(Ride ride, Exception exception, ServiceFilterResponse response) {
-                    if (exception == null){
-                        Log.i(loggerTag,"Ride Was Updated Successfuly");
-                        Toast.makeText(getApplicationContext(),"Ride Was Updated Successfuly",Toast.LENGTH_SHORT).show();
-                    } else {
-                        Log.e(loggerTag, exception.getMessage());
-                    }
-                }
-            });
         } catch (MalformedURLException e) {
-            e.printStackTrace();
-            Log.e(loggerTag, e.getCause().toString());
+            Log.e(loggerTag,e.getMessage());
         }
+    }
+
+    private void updateRide(Ride ride){
+       initializeMobileService();
+        this.mobileServiceTable.update(ride, new TableOperationCallback<Ride>() {
+            @Override
+            public void onCompleted(Ride ride, Exception exception, ServiceFilterResponse response) {
+                if (exception == null){
+                    Log.i(loggerTag,"Ride Was Updated Successfuly");
+                    Toast.makeText(getApplicationContext(),"Ride Was Updated Successfuly",Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.e(loggerTag, exception.getMessage());
+                }
+            }
+        });
     }
 
 

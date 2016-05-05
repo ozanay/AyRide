@@ -50,4 +50,6 @@
     <string name="accept">ACCEPT</string>
     <string name="reject">REJECT</string>
     <string name="gcmSenderId">1072435786165</string>
+    <string name="firebaseUrl">https://ayride.firebaseio.com/users</string>
+    <string name="firebaseCoordinates">https://ayride.firebaseio.com/coordinates</string>
 </resources>

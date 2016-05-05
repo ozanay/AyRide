@@ -13,8 +13,6 @@ import android.util.Log;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.notifications.NotificationsHandler;
 
-import java.util.ArrayList;
-
 public class RideRequestHandler extends NotificationsHandler {
 
     private final static String loggerTag = RideRequestHandler.class.getSimpleName();
@@ -64,10 +62,6 @@ public class RideRequestHandler extends NotificationsHandler {
 
         switch (message){
             case(rideRequestMessage):
-                Intent intent = new Intent(context, IncomingRequestActivity.class);
-                ArrayList<Ride> rides = new ArrayList<>();
-                rides.add(ride);
-                intent.putExtra("Ride",rides);
                 contentIntent = PendingIntent.getActivity(context, 0, new Intent(context, IncomingRequestActivity.class), 0);
                 break;
             case(rideRequestAcceptedMessage):

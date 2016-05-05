@@ -100,6 +100,14 @@
                     android:background="@color/transparent"
                     android:src="@drawable/car"
                     android:visibility="gone"/>
+
+                <ImageButton
+                    android:id="@+id/ride_cancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/transparent"
+                    android:src="@drawable/cancel"
+                    android:visibility="gone"/>
             </LinearLayout>
 
         </FrameLayout>

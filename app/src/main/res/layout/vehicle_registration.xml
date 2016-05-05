@@ -30,7 +30,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textCapWords"
-            android:imeOptions="actionDone"
             android:hint="@string/vehicleColorHint" />
     </android.support.design.widget.TextInputLayout>
 
@@ -42,8 +41,7 @@
         <EditText android:id="@+id/vehicle_year_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textCapWords"
-            android:imeOptions="actionDone"
+            android:inputType="number"
             android:hint="@string/vehicleYearHint" />
     </android.support.design.widget.TextInputLayout>
 
@@ -57,6 +55,7 @@
             android:layout_height="wrap_content"
             android:inputType="textCapWords"
             android:imeOptions="actionDone"
+            android:maxLength="@integer/licensePlateMaxLength"
             android:hint="@string/vehicleLicensePlateHint" />
     </android.support.design.widget.TextInputLayout>
 
