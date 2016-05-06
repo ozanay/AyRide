@@ -61,12 +61,11 @@
                 android:layout_gravity="bottom|left">
 
                 <ImageButton
-                    android:id="@+id/driver_chat"
+                    android:id="@+id/chat_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@color/transparent"
-                    android:src="@drawable/chat"
-                    android:visibility="gone"/>
+                    android:src="@drawable/chat"/>
 
             </LinearLayout>
 

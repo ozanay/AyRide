@@ -20,6 +20,7 @@ public class RideRequestHandler extends NotificationsHandler {
     private final static String rideRequestAcceptedMessage = "REQUEST ACCEPTED";
     private final static String rideRequestRejectedMessage = "REQUEST REJECTED";
     private final static String rideCanceled = "RIDE CANCELED";
+    private final static String chatUrl = "https://ayride.firebaseio.com/chat/peertopeer/";
     private static final int NOTIFICATION_ID = 1;
     private MobileServiceClient mobileServiceClient;
     private RideLocalStorage rideLocalStorage;
@@ -65,7 +66,9 @@ public class RideRequestHandler extends NotificationsHandler {
                 contentIntent = PendingIntent.getActivity(context, 0, new Intent(context, IncomingRequestActivity.class), 0);
                 break;
             case(rideRequestAcceptedMessage):
-                // Chat Application Will Open
+                Intent intent = new Intent(context, ChatActivity.class);
+                intent.putExtra("chatUrl",chatUrl+ride.getRideId());
+                contentIntent = PendingIntent.getActivity(context, 0,intent, PendingIntent.FLAG_CANCEL_CURRENT);
                 break;
             case(rideRequestRejectedMessage):
                 contentIntent = PendingIntent.getActivity(context, 0, new Intent(context, SearchRideActivity.class), 0);

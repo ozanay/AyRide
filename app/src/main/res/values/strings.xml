@@ -50,6 +50,11 @@
     <string name="accept">ACCEPT</string>
     <string name="reject">REJECT</string>
     <string name="gcmSenderId">1072435786165</string>
-    <string name="firebaseUrl">https://ayride.firebaseio.com/users</string>
-    <string name="firebaseCoordinates">https://ayride.firebaseio.com/coordinates</string>
+    <string name="firebaseUrl">https://ayride.firebaseio.com/users/</string>
+    <string name="firebaseCoordinates">https://ayride.firebaseio.com/coordinates/</string>
+    <string name="firebaseUsersChat">https://ayride.firebaseio.com/chat/userschat/</string>
+    <string name="firebaseDriversChat">https://ayride.firebaseio.com/chat/driverschat/</string>
+    <string name="firebaseP2PChat">https://ayride.firebaseio.com/chat/peertopeer/</string>
+    <string name="addHashTag">ADD HASHTAG</string>
+    <string name="hashTagHint">Hashtag</string>
 </resources>

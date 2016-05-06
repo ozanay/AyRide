@@ -60,7 +60,6 @@ public class IncomingRequestActivity extends AppCompatActivity {
     private String convertRideToMessage(Ride ride){
         return ride.getPedestrianName()+" "+ride.getPedestrianSurName()+"\n"
                 +"Wants To Share Your Ride!";
-        //return "Wants To Share Your Ride!";
     }
 
     private void initializeMobileService(){
@@ -91,6 +90,15 @@ public class IncomingRequestActivity extends AppCompatActivity {
         });
     }
 
+    private Ride clearRejectedRide(Ride ride){
+        Ride clearedRide = ride;
+        ride.setIsRejected(false);
+        ride.setPedestrianId("");
+        ride.setPedestrianInstanceId("");
+        ride.setPedestrianName("");
+        ride.setPedestrianSurName("");
+        return clearedRide;
+    }
 
 
     private View.OnClickListener acceptButtonListener = new View.OnClickListener() {
@@ -99,7 +107,10 @@ public class IncomingRequestActivity extends AppCompatActivity {
             ride.setIsAccepted(true);
             rideLocalStorage.storeIsAccepted(true);
             updateRide(ride);
-            //Chat Application Will Be Invoked.
+            Intent intent = new Intent(IncomingRequestActivity.this, ChatActivity.class);
+            intent.putExtra("chatUrl",getString(R.string.firebaseP2PChat)+rideLocalStorage.getRideId());
+            startActivity(intent);
+            finish();
         }
     };
 
@@ -110,6 +121,9 @@ public class IncomingRequestActivity extends AppCompatActivity {
             ride.setIsRejected(true);
             rideLocalStorage.storeIsRejected(true);
             updateRide(ride);
+            ride = clearRejectedRide(ride);
+            updateRide(ride);
+            rideLocalStorage.storeRide(ride);
             startActivity(new Intent(IncomingRequestActivity.this, HomePageActivity.class));
             finish();
         }
