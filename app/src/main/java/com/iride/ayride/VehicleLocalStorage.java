@@ -20,8 +20,10 @@ public class VehicleLocalStorage {
     }
 
     public void storeVehicleId(String vehicleId) {
-        if (vehicleId == null || vehicleId.isEmpty()) {
+        if (isNullOrWhiteSpace(vehicleId)) {
             Log.d(loggerTag, "Vehicle Id is null or empty!");
+            vehicleSharedPreferencesEditor.putString(vehicleIdKey, "");
+            vehicleSharedPreferencesEditor.apply();
             return;
         }
 
@@ -30,8 +32,10 @@ public class VehicleLocalStorage {
     }
 
     public void storeVehicleModel(String vehicleModel) {
-        if (vehicleModel == null || vehicleModel.isEmpty()) {
+        if (isNullOrWhiteSpace(vehicleModel)) {
             Log.d(loggerTag, "Vehicle Model is null or empty!");
+            vehicleSharedPreferencesEditor.putString(vehicleModelKey, "");
+            vehicleSharedPreferencesEditor.apply();
             return;
         }
 
@@ -40,8 +44,10 @@ public class VehicleLocalStorage {
     }
 
     public void storeVehicleColor(String vehicleColor) {
-        if (vehicleColor == null || vehicleColor.isEmpty()) {
+        if (isNullOrWhiteSpace(vehicleColor)) {
             Log.d(loggerTag, "Vehicle Color is null or empty!");
+            vehicleSharedPreferencesEditor.putString(vehicleColorKey, "");
+            vehicleSharedPreferencesEditor.apply();
             return;
         }
 
@@ -50,8 +56,10 @@ public class VehicleLocalStorage {
     }
 
     public void storeVehicleLicensePlate(String vehicleLicensePlate) {
-        if (vehicleLicensePlate == null || vehicleLicensePlate.isEmpty()) {
+        if (isNullOrWhiteSpace(vehicleLicensePlate)) {
             Log.d(loggerTag, "Vehicle License Plate is null or empty!");
+            vehicleSharedPreferencesEditor.putString(vehicleLicensePlateKey, "");
+            vehicleSharedPreferencesEditor.apply();
             return;
         }
 
@@ -60,8 +68,10 @@ public class VehicleLocalStorage {
     }
 
     public void storeVehicleYear(String vehicleYear) {
-        if (vehicleYear == null) {
+        if (isNullOrWhiteSpace(vehicleYear)) {
             Log.d(loggerTag, "Vehicle Year is null or empty!");
+            vehicleSharedPreferencesEditor.putString(vehicleYearKey, "");
+            vehicleSharedPreferencesEditor.apply();
             return;
         }
 
@@ -87,5 +97,25 @@ public class VehicleLocalStorage {
 
     public String getVehicleYear() {
         return vehicleSharedPreferences.getString(vehicleYearKey, null);
+    }
+
+    public void storeVehicle(Vehicle vehicle) {
+        storeVehicleId(vehicle.getVehicleId());
+        storeVehicleModel(vehicle.getVehicleModel());
+        storeVehicleColor(vehicle.getVehicleColor());
+        storeVehicleYear(vehicle.getVehicleYear());
+        storeVehicleLicensePlate(vehicle.getVehicleLicensePlate());
+    }
+
+    public void clearStorage() {
+        storeVehicleId(null);
+        storeVehicleModel(null);
+        storeVehicleColor(null);
+        storeVehicleYear(null);
+        storeVehicleLicensePlate(null);
+    }
+
+    private boolean isNullOrWhiteSpace(String string){
+        return (string == null || string.trim().equals(""));
     }
 }

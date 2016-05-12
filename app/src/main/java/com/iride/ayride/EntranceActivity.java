@@ -13,6 +13,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -23,7 +24,7 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
-import com.facebook.Profile;
+import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
@@ -47,14 +48,12 @@ public class EntranceActivity extends AppCompatActivity {
     private final static String homePage = "HOMEPAGE";
     private final static String loggerTag = EntranceActivity.class.getSimpleName();
     private UserLocalStorage userLocalStorage;
-    private Button signInButton;
-    private Button signUpButton;
-    private LoginButton facebookLoginButton;
     private CallbackManager callbackManager;
     private AccessToken accessToken;
     private AccessTokenTracker accessTokenTracker;
     private MobileServiceClient mobileServiceClient = null;
     private MobileServiceTable mobileServiceTable = null;
+    private RelativeLayout loadingPanel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,32 +63,44 @@ public class EntranceActivity extends AppCompatActivity {
             this.callbackManager = CallbackManager.Factory.create();
             setContentView(R.layout.activity_enterance);
             this.generateKeyHash();
-            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-            if (!isConnectedToInternet()){
-                Toast.makeText(getApplicationContext(), "Internet connection is necessary!", Toast.LENGTH_SHORT).show();
+            this.loadingPanel = (RelativeLayout) findViewById(R.id.loadingPanel);
+            if (this.loadingPanel != null) {
+                this.loadingPanel.setVisibility(View.GONE);
             }
 
             this.initializeMobileService();
-            this.signInButton = (Button) findViewById(R.id.login_button);
-            this.signInButton.setOnClickListener(new LoginListener());
-
-            this.signUpButton = (Button) findViewById(R.id.sign_up_button);
-            this.signUpButton.setOnClickListener(new SignUpListener());
-            userLocalStorage = new UserLocalStorage(getSharedPreferences(StoragePreferences.USER_PREFERENCES, Context.MODE_PRIVATE));
-            if (userLocalStorage.getUserName() != null && userLocalStorage.getUserSurName() != null){
-                changeActivity(homePage);
+            Button signInButton = (Button) findViewById(R.id.login_button);
+            if (signInButton != null) {
+                signInButton.setOnClickListener(new LoginListener());
             }
 
-            if (isFacebookUserLoggedIn()){
-                Log.d(loggerTag,"User Already Logged In!");
+            Button signUpButton = (Button) findViewById(R.id.sign_up_button);
+            if (signUpButton != null) {
+                signUpButton.setOnClickListener(new SignUpListener());
+            }
+
+            while (!isConnectedToInternet()) {
+                Toast.makeText(getApplicationContext(), "Internet connection is necessary!", Toast.LENGTH_LONG).show();
+            }
+
+            userLocalStorage = new UserLocalStorage(getSharedPreferences(StoragePreferences.USER_PREFERENCES, Context.MODE_PRIVATE));
+            if (!isNullOrWhiteSpace(userLocalStorage.getUserName()) && !isNullOrWhiteSpace(userLocalStorage.getUserSurName())) {
                 changeActivity(homePage);
                 finish();
             }
 
-            this.facebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
+            if (isFacebookUserLoggedIn()) {
+                Log.d(loggerTag, "User Already Logged In!");
+                changeActivity(homePage);
+                finish();
+            }
+
+            LoginButton facebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
             List<String> permissionList = Arrays.asList("public_profile", "email", "user_birthday");
-            this.facebookLoginButton.setReadPermissions(permissionList);
-            this.facebookLoginButton.registerCallback(this.callbackManager, new FacebookRegisterCallback());
+            if (facebookLoginButton != null) {
+                facebookLoginButton.setReadPermissions(permissionList);
+                facebookLoginButton.registerCallback(this.callbackManager, new FacebookRegisterCallback());
+            }
         } catch (Exception exc) {
             Log.e(loggerTag, exc.getCause().toString());
         }
@@ -158,10 +169,11 @@ public class EntranceActivity extends AppCompatActivity {
 
         if (intent != null) {
             startActivity(intent);
+            finish();
         }
     }
 
-    private void addFacebookUser(User user) {
+    private void addFacebookUser(final User user) {
         if (mobileServiceClient == null || mobileServiceTable == null) {
             Log.d(loggerTag, "Mobile Service or Table is Null");
             return;
@@ -172,19 +184,21 @@ public class EntranceActivity extends AppCompatActivity {
             return;
         }
 
+        Log.d(loggerTag, "Adds User");
         mobileServiceTable.insert(user, new TableOperationCallback<User>() {
-            public void onCompleted(User entity, Exception exception, ServiceFilterResponse response) {
+            @Override
+            public void onCompleted(User result, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
-                    Log.i(loggerTag, "Service added the user successfully!");
-                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+                    userLocalStorage.storeUser(user);
                     changeActivity(homePage);
-                    finish();
+                    Log.d(loggerTag, "User ADDED!");
                 } else {
-                    Log.e(loggerTag, exception.getMessage());
-                    Toast.makeText(getApplicationContext(), "User was not added to system!", Toast.LENGTH_SHORT).show();
+                    Log.e(loggerTag, "ERROR WHEN ADDING USER!");
+                    LoginManager.getInstance().logOut();
                 }
             }
         });
+
     }
 
     private String splitName(String name) {
@@ -205,7 +219,7 @@ public class EntranceActivity extends AppCompatActivity {
         try {
             this.mobileServiceClient = new MobileServiceClient(
                     getString(R.string.azureApiUrl),
-                    "GrNjSZlXnMAQjEblFKkvodLnSJyQHs15",
+                    getString(R.string.azureApiKey),
                     this
             );
             this.mobileServiceTable = mobileServiceClient.getTable("user_info", User.class);
@@ -215,26 +229,27 @@ public class EntranceActivity extends AppCompatActivity {
         }
     }
 
-    private void checkExistenceOfFacebookUser(String facebookUserId) {
-        if (mobileServiceTable == null){
-            Log.d(loggerTag,"Mobile Service Table is Null!");
+    private void checkFacebookUserExistence(final User user) {
+        if (mobileServiceTable == null) {
+            Log.d(loggerTag, "Mobile Service Table is Null!");
             return;
         }
 
-        mobileServiceTable.where().field("id").eq(facebookUserId).execute(new TableQueryCallback<User>() {
+        Log.d(loggerTag, "Checking User!");
+        mobileServiceTable.where().field("id").eq(user.getId()).execute(new TableQueryCallback<User>() {
+            @Override
             public void onCompleted(List<User> result, int count, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
-                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-                    if (result.isEmpty() || result == null) {
+                    if (result == null || result.size() == 0) {
                         Log.i(loggerTag, "No Existence!");
+                        addFacebookUser(user);
                     } else {
-                        Log.i(loggerTag, "Already Exist!");
+                        Log.d(loggerTag, "USER ALREADY EXIST IN DB");
+                        userLocalStorage.storeUser(user);
                         changeActivity(homePage);
-                        finish();
                     }
                 } else {
-                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-                    Log.e(loggerTag, exception.getCause().toString());
+                    Log.e(loggerTag, "ERROR IN is Facebook user!");
                 }
             }
         });
@@ -245,17 +260,13 @@ public class EntranceActivity extends AppCompatActivity {
         return accessToken != null;
     }
 
-    private boolean isConnectedToInternet(){
-        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+    private boolean isConnectedToInternet() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
-        if(connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
-                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED) {
-            return true;
-        }
+        return connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED;
 
-        return false;
     }
-
 
     private class LoginListener implements View.OnClickListener {
         public void onClick(View v) {
@@ -274,6 +285,7 @@ public class EntranceActivity extends AppCompatActivity {
     private class FacebookRegisterCallback implements FacebookCallback<LoginResult> {
         @Override
         public void onSuccess(final LoginResult loginResult) {
+            EntranceActivity.this.loadingPanel.setVisibility(View.VISIBLE);
             if (loginResult == null) {
                 Log.d(loggerTag, "Login Result Is Null!");
                 return;
@@ -289,72 +301,72 @@ public class EntranceActivity extends AppCompatActivity {
                         accessToken = AccessToken.getCurrentAccessToken();
                     } else {
                         Log.d(loggerTag, "No Changed Access Token!");
-                        changeActivity(homePage);
-                        finish();
                     }
                 }
             };
+
             accessTokenTracker.startTracking();
-            GraphRequest.newMeRequest(accessToken, new GraphRequest.GraphJSONObjectCallback() {
+            GraphRequest request = GraphRequest.newMeRequest(accessToken, new GraphRequest.GraphJSONObjectCallback() {
                 @Override
                 public void onCompleted(JSONObject facebookUser, GraphResponse response) {
+                    Log.d(loggerTag, facebookUser.toString());
                     if (response.getError() != null) {
                         // handle error
-                        Log.e(loggerTag, response.getError().toString());
-                    } else {
-                        try {
-                            final Profile profile = Profile.getCurrentProfile();
-                            if (profile == null) {
-                                Log.d(loggerTag, "Profile Information Is Null");
-                                return;
-                            }
+                        Log.e(loggerTag, "Response Error: " + response.getError().getErrorMessage());
+                        return;
+                    }
 
-                            String message = null;
-                            String id = accessToken.getUserId();
-                            findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-                            EntranceActivity.this.checkExistenceOfFacebookUser(id);
-                            String name = EntranceActivity.this.splitName(profile.getName());
-                            String surName = profile.getLastName();
-                            message = "Id: " + id + "\n" + "Name: " + name + "\n" + "Surname: " + surName + "\n" + "Gender: " + " " + "\n";
-                            user.setId(id);
-                            user.setName(name);
-                            user.setSurName(surName);
-                            user.setGender(" ");
-                            if (accessToken.getPermissions().contains("email")) {
-                                String email = facebookUser.optString("email");
-                                message += "E-mail: " + email + "\n";
-                                user.setEmail(email);
-                            }
-
-                            if (accessToken.getPermissions().contains("user_birthday")) {
-                                String birthday = facebookUser.optString("user_birthday");
-                                message += "Birthday: " + birthday + "\n";
-                                user.setBirthday(birthday);
-                            }
-
-                            Log.i(loggerTag, message);
-                            findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-                            userLocalStorage.storeUser(user);
-                            EntranceActivity.this.addFacebookUser(user);
-                        } catch (Exception exc){
-                            Log.e(loggerTag,exc.getMessage());
+                    try {
+                        String id = accessToken.getUserId();
+                        if (isNullOrWhiteSpace(id)) {
+                            id = facebookUser.getString("id");
                         }
+
+                        String name = facebookUser.getString("first_name");
+                        String surName = facebookUser.getString("last_name");
+                        String gender = facebookUser.getString("gender");
+                        String birthday = facebookUser.getString("birthday");
+                        if (accessToken.getPermissions().contains("email")) {
+                            String email = facebookUser.optString("email");
+                            if (isNullOrWhiteSpace(email)){
+                                email = facebookUser.getString("email");
+                            }
+
+                            user.setEmail(email);
+                        }
+                        user.setId(id);
+                        user.setName(name);
+                        user.setSurName(surName);
+                        user.setGender(gender);
+                        Log.d(loggerTag, user.toString());
+                        checkFacebookUserExistence(user);
+                        EntranceActivity.this.loadingPanel.setVisibility(View.GONE);
+                    } catch (Exception exc) {
+                        Log.e(loggerTag, "Exception Message: "+exc.getMessage());
                     }
                 }
-            }).executeAsync();
+            });
+            Bundle parameters = new Bundle();
+            parameters.putString("fields", "id,name,link,first_name,last_name,gender,birthday,email");
+            request.setParameters(parameters);
+            request.executeAsync();
         }
 
         @Override
         public void onCancel() {
-            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+            EntranceActivity.this.loadingPanel.setVisibility(View.GONE);
             Log.d(loggerTag, "Facebook Login Is Canceled!");
         }
 
         @Override
         public void onError(FacebookException error) {
-            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+            EntranceActivity.this.loadingPanel.setVisibility(View.GONE);
             Log.e(loggerTag, error.getMessage());
             Log.e(loggerTag, error.getCause().toString());
         }
+    }
+
+    private boolean isNullOrWhiteSpace(String string){
+        return (string == null || string.trim().equals(""));
     }
 }

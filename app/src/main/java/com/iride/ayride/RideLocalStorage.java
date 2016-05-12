@@ -41,8 +41,10 @@ public class RideLocalStorage {
     }
 
     public void storeOwnInstanceId(String ownInstanceId) {
-        if (ownInstanceId.isEmpty()) {
+        if (isNullOrWhiteSpace(ownInstanceId)) {
             Log.d(loggerTag, "Own Instance Id is null or empty!");
+            rideSharedPreferencesEditor.putString(ownInstanceIdKey, "");
+            rideSharedPreferencesEditor.apply();
             return;
         }
 
@@ -51,7 +53,7 @@ public class RideLocalStorage {
     }
 
     public void storeRideId(String rideId) {
-        if (rideId == null) {
+        if (isNullOrWhiteSpace(rideId)) {
             Log.d(loggerTag, "Ride Id is null or empty!");
             rideSharedPreferencesEditor.putString(rideIdKey, "");
             rideSharedPreferencesEditor.apply();
@@ -63,7 +65,7 @@ public class RideLocalStorage {
     }
 
     public void storeRideFrom(String rideFrom) {
-        if (rideFrom == null) {
+        if (isNullOrWhiteSpace(rideFrom)) {
             Log.d(loggerTag, "Ride From is null or empty!");
             rideSharedPreferencesEditor.putString(rideFromKey, "");
             rideSharedPreferencesEditor.apply();
@@ -75,7 +77,7 @@ public class RideLocalStorage {
     }
 
     public void storeRideTo(String rideTo) {
-        if (rideTo == null) {
+        if (isNullOrWhiteSpace(rideTo)) {
             Log.d(loggerTag, "Ride To is null or empty!");
             rideSharedPreferencesEditor.putString(rideToKey, "");
             rideSharedPreferencesEditor.apply();
@@ -87,7 +89,7 @@ public class RideLocalStorage {
     }
 
     public void storeRideAvailableSeat(String rideAvailableSeat) {
-        if (rideAvailableSeat == null) {
+        if (isNullOrWhiteSpace(rideAvailableSeat)) {
             Log.d(loggerTag, "Ride Available Seat is null or empty!");
             rideSharedPreferencesEditor.putString(rideAvailableSeatKey, "");
             rideSharedPreferencesEditor.apply();
@@ -99,7 +101,7 @@ public class RideLocalStorage {
     }
 
     public void storeRideAppointmentTime(String rideAppointmentTime) {
-        if (rideAppointmentTime == null) {
+        if (isNullOrWhiteSpace(rideAppointmentTime)) {
             Log.d(loggerTag, "Ride Appointment Time is null or empty!");
             rideSharedPreferencesEditor.putString(rideAppointmentTimeKey, "");
             rideSharedPreferencesEditor.apply();
@@ -111,7 +113,7 @@ public class RideLocalStorage {
     }
 
     public void storeRideComment(String rideComment) {
-        if (rideComment == null) {
+        if (isNullOrWhiteSpace(rideComment)) {
             Log.d(loggerTag, "Ride Comment is null or empty!");
             rideSharedPreferencesEditor.putString(rideCommentKey, rideComment);
             rideSharedPreferencesEditor.apply();
@@ -123,7 +125,7 @@ public class RideLocalStorage {
     }
 
     public void storeRideDriverId(String rideDriverId) {
-        if (rideDriverId == null) {
+        if (isNullOrWhiteSpace(rideDriverId)) {
             Log.d(loggerTag, "Ride Driver Id is null or empty!");
             rideSharedPreferencesEditor.putString(rideDriverIdKey, "");
             rideSharedPreferencesEditor.apply();
@@ -135,7 +137,7 @@ public class RideLocalStorage {
     }
 
     public void storeRideDriverInstanceId(String rideDriverInstanceId) {
-        if (rideDriverInstanceId == null) {
+        if (isNullOrWhiteSpace(rideDriverInstanceId)) {
             Log.d(loggerTag, "Ride Driver Instance Id is null or empty!");
             rideSharedPreferencesEditor.putString(rideDriverInstanceIdKey, "");
             rideSharedPreferencesEditor.apply();
@@ -147,7 +149,7 @@ public class RideLocalStorage {
     }
 
     public void storeRideDriverName(String rideDriverName) {
-        if (rideDriverName == null) {
+        if (isNullOrWhiteSpace(rideDriverName)) {
             Log.d(loggerTag, "Ride Driver Name is null or empty!");
             rideSharedPreferencesEditor.putString(rideDriverNameKey, "");
             rideSharedPreferencesEditor.apply();
@@ -159,7 +161,7 @@ public class RideLocalStorage {
     }
 
     public void storeRideDriverSurname(String rideDriverSurname) {
-        if (rideDriverSurname == null) {
+        if (isNullOrWhiteSpace(rideDriverSurname)) {
             Log.d(loggerTag, "Ride Driver Surname is null or empty!");
             rideSharedPreferencesEditor.putString(rideDriverSurnameKey, "");
             rideSharedPreferencesEditor.apply();
@@ -171,7 +173,7 @@ public class RideLocalStorage {
     }
 
     public void storeRidePedestrianId(String ridePedestrianId) {
-        if (ridePedestrianId == null) {
+        if (isNullOrWhiteSpace(ridePedestrianId)) {
             Log.d(loggerTag, "Ride Pedestrian Id is null or empty!");
             rideSharedPreferencesEditor.putString(ridePedestrianIdKey, "");
             rideSharedPreferencesEditor.apply();
@@ -183,7 +185,7 @@ public class RideLocalStorage {
     }
 
     public void storeRidePedestrianInstanceId(String ridePedestrianInstanceId) {
-        if (ridePedestrianInstanceId == null) {
+        if (isNullOrWhiteSpace(ridePedestrianInstanceId)) {
             Log.d(loggerTag, "Ride Pedestrian Instance Id is null or empty!");
             rideSharedPreferencesEditor.putString(ridePedestrianInstanceIdKey, "");
             rideSharedPreferencesEditor.apply();
@@ -195,7 +197,7 @@ public class RideLocalStorage {
     }
 
     public void storeRidePedestrianName(String ridePedestrianName) {
-        if (ridePedestrianName == null) {
+        if (isNullOrWhiteSpace(ridePedestrianName)) {
             Log.d(loggerTag, "Ride Pedestrian Name is null or empty!");
             rideSharedPreferencesEditor.putString(ridePedestrianNameKey, "");
             rideSharedPreferencesEditor.apply();
@@ -207,7 +209,7 @@ public class RideLocalStorage {
     }
 
     public void storeRidePedestrianSurname(String ridePedestrianSurname) {
-        if (ridePedestrianSurname == null) {
+        if (isNullOrWhiteSpace(ridePedestrianSurname)) {
             Log.d(loggerTag, "Ride Pedestrian Surname is null or empty!");
             rideSharedPreferencesEditor.putString(ridePedestrianSurnameKey, "");
             rideSharedPreferencesEditor.apply();
@@ -398,7 +400,7 @@ public class RideLocalStorage {
         storeIsComplete(ride.isComplete());
     }
 
-    public void clearRideLocalStorage() {
+    public void clearStorage() {
         storeRideId(null);
         storeRideFrom(null);
         storeRideTo(null);
@@ -413,11 +415,16 @@ public class RideLocalStorage {
         storeRidePedestrianInstanceId(null);
         storeRidePedestrianName(null);
         storeRidePedestrianSurname(null);
+        storeOwnInstanceId(null);
         storeRideOrigin(null);
         storeRideDestination(null);
         storeIsAccepted(false);
         storeIsRejected(false);
         storeIsCanceled(false);
         storeIsComplete(false);
+    }
+
+    private boolean isNullOrWhiteSpace(String string){
+        return (string == null || string.trim().equals(""));
     }
 }

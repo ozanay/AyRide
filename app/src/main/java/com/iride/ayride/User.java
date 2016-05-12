@@ -102,4 +102,14 @@ public class User {
     public void setId(String id) {
         this.id = id;
     }
+
+    public String toString() {
+        return "Name: " + getName() + "\n"
+                + "Surname: " + getSurName() + "\n"
+                + "Gender: " + getGender() + "\n"
+                + "Birthday: " + getBirthday() + "\n"
+                + "PhoneNumber: " + getPhoneNumber() + "\n"
+                + "Email: " + getEmail() + "\n"
+                + "Password: " + getPassword();
+    }
 }

@@ -24,7 +24,10 @@ public class ChatHashTagsActivity extends AppCompatActivity implements HashTagDi
         setContentView(R.layout.activity_chat_hash_tags);
         this.hashTags = (ArrayList<String>) getIntent().getSerializableExtra("hashTagList");
         Button addHashTagButton = (Button) findViewById(R.id.add_hashtag_button);
-        addHashTagButton.setOnClickListener(addHashTagListener);
+        if (addHashTagButton != null) {
+            addHashTagButton.setOnClickListener(addHashTagListener);
+        }
+
         ListView hashTagsList = (ListView) findViewById(R.id.list_of_chat_hashtags);
         String[] tags = formatHashTags(hashTags);
         if (tags == null){
@@ -33,8 +36,10 @@ public class ChatHashTagsActivity extends AppCompatActivity implements HashTagDi
         }
 
         ArrayAdapter hashTagsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, tags);
-        hashTagsList.setAdapter(hashTagsAdapter);
-        hashTagsList.setOnItemClickListener(hashTagsClickListener);
+        if (hashTagsList != null) {
+            hashTagsList.setAdapter(hashTagsAdapter);
+            hashTagsList.setOnItemClickListener(hashTagsClickListener);
+        }
     }
 
     @Override

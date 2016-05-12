@@ -118,7 +118,6 @@ public class LoginActivity extends AppCompatActivity {
                         }
 
                         Log.d(loggerTag, "More than one result returned!");
-                        Toast.makeText(getApplicationContext(),"More Than One User!",Toast.LENGTH_SHORT).show();
                         emailText.requestFocus();
                         emailText.setSelectAllOnFocus(true);
                     }

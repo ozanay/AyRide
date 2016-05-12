@@ -3,9 +3,6 @@ package com.iride.ayride;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-/**
- * Created by user on 8.04.2016.
- */
 public class UserLocalStorage {
 
     private final String loggerTag = UserLocalStorage.class.getSimpleName();
@@ -28,8 +25,10 @@ public class UserLocalStorage {
     }
 
     public void storeId(String id) {
-        if (id == null || id.isEmpty()) {
+        if (isNullOrWhiteSpace(id)) {
             Log.d(loggerTag, "Id is null or empty!");
+            sharedPreferencesEditor.putString(idKey, "");
+            sharedPreferencesEditor.apply();
             return;
         }
 
@@ -38,8 +37,10 @@ public class UserLocalStorage {
     }
 
     public void storeName(String name) {
-        if (name == null || name.isEmpty()) {
+        if (isNullOrWhiteSpace(name)) {
             Log.d(loggerTag, "Name is null or empty!");
+            sharedPreferencesEditor.putString(nameKey, "");
+            sharedPreferencesEditor.apply();
             return;
         }
 
@@ -48,8 +49,10 @@ public class UserLocalStorage {
     }
 
     public void storeSurName(String surName) {
-        if (surName == null || surName.isEmpty()) {
+        if (isNullOrWhiteSpace(surName)) {
             Log.d(loggerTag, "Surname is null or empty!");
+            sharedPreferencesEditor.putString(surNameKey, "");
+            sharedPreferencesEditor.apply();
             return;
         }
 
@@ -58,9 +61,10 @@ public class UserLocalStorage {
     }
 
     public void storeBirthday(String birthday) {
-        if (birthday == null || birthday.isEmpty()) {
+        if (isNullOrWhiteSpace(birthday)) {
             Log.d(loggerTag, "Birthday is null or empty!");
-            sharedPreferencesEditor.putString(birthdayKey, noInformation);
+            sharedPreferencesEditor.putString(birthdayKey, "");
+            sharedPreferencesEditor.apply();
             return;
         }
 
@@ -69,9 +73,10 @@ public class UserLocalStorage {
     }
 
     public void storeGender(String gender) {
-        if (gender == null || gender.isEmpty()) {
+        if (isNullOrWhiteSpace(gender)) {
             Log.d(loggerTag, "Gender is null or empty!");
-            sharedPreferencesEditor.putString(genderKey, noInformation);
+            sharedPreferencesEditor.putString(genderKey, "");
+            sharedPreferencesEditor.apply();
             return;
         }
 
@@ -80,9 +85,10 @@ public class UserLocalStorage {
     }
 
     public void storePhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.isEmpty()) {
+        if (isNullOrWhiteSpace(phoneNumber)) {
             Log.d(loggerTag, "Phone number is null or empty!");
-            sharedPreferencesEditor.putString(phoneKey, noInformation);
+            sharedPreferencesEditor.putString(phoneKey, "");
+            sharedPreferencesEditor.apply();
             return;
         }
 
@@ -91,9 +97,10 @@ public class UserLocalStorage {
     }
 
     public void storeEmail(String email) {
-        if (email == null || email.isEmpty()) {
+        if (isNullOrWhiteSpace(email)) {
             Log.d(loggerTag, "Email is null or empty!");
-            sharedPreferencesEditor.putString(emailKey, email);
+            sharedPreferencesEditor.putString(emailKey, "");
+            sharedPreferencesEditor.apply();
             return;
         }
 
@@ -102,9 +109,11 @@ public class UserLocalStorage {
     }
 
     public void storePassword(String password) {
-        if (password == null || password.isEmpty()) {
+        if (isNullOrWhiteSpace(password)) {
             Log.d(loggerTag, "Password is null or empty!");
-            sharedPreferencesEditor.putString(emailKey, noInformation);
+            sharedPreferencesEditor.putString(passwordKey, "");
+            sharedPreferencesEditor.apply();
+            return;
         }
 
         sharedPreferencesEditor.putString(passwordKey, password);
@@ -117,7 +126,7 @@ public class UserLocalStorage {
             return;
         }
 
-        if (user.getId() != null) {
+        if (!isNullOrWhiteSpace(user.getId())) {
             storeId(user.getId());
         }
 
@@ -168,8 +177,23 @@ public class UserLocalStorage {
         return sharedPreferences.getString(passwordKey, null);
     }
 
-    // False -> pedestrian, True -> driver
     public boolean isDriverMode() {
         return sharedPreferences.getBoolean(userModeKey, false);
+    }
+
+    public void clearStorage(){
+        storeId(null);
+        storeName(null);
+        storeSurName(null);
+        storeBirthday(null);
+        storeEmail(null);
+        storeGender(null);
+        storePhoneNumber(null);
+        storePassword(null);
+        storeIsDriver(false);
+    }
+
+    private boolean isNullOrWhiteSpace(String string){
+        return (string == null || string.trim().equals(""));
     }
 }
