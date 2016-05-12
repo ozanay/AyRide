@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.iride.ayride"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.iride.ayride" >
 
-    <uses-sdk  tools:overrideLibrary="com.firebase.ui"/>
+    <uses-sdk tools:overrideLibrary="com.firebase.ui" />
+
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
@@ -41,14 +42,16 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/appName"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:replace="android:icon,android:label"
+        android:name="android.support.multidex.MultiDexApplication">
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebookAppId" />
 
         <activity
             android:name=".EntranceActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -107,22 +110,35 @@
             android:name=".SettingsActivity"
             android:theme="@style/AppTheme" />
         <activity android:name=".SearchResultsActivity" />
-
-        <receiver
-            android:name="com.microsoft.windowsazure.notifications.NotificationsBroadcastReceiver"
-            android:permission="com.google.android.c2dm.permission.SEND">
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-
-                <category android:name="com.iride.ayride" />
-            </intent-filter>
-        </receiver>
-
         <activity
             android:name=".IncomingRequestActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".ChatActivity" />
-        <activity android:name=".ChatHashTagsActivity"></activity>
+        <activity android:name=".ChatHashTagsActivity" />
+
+        <receiver
+            android:name="com.google.android.gms.gcm.GcmReceiver"
+            android:exported="true"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <category android:name="com.example.gcm" />
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.iride.ayride.RideGcmListenerService"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.iride.ayride.RideInstanceIDListenerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.iid.InstanceID" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

@@ -24,6 +24,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private final static String loggerTag = ChatActivity.class.getSimpleName();
     private static String userName;
+    private String chatUrl;
     private UserLocalStorage userLocalStorage;
     private Firebase firebase;
     private ValueEventListener mConnectedListener;
@@ -35,10 +36,10 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
         Firebase.setAndroidContext(this);
-        String chatUrl = getIntent().getStringExtra("chatUrl");
+        chatUrl = getIntent().getStringExtra("chatUrl");
         Log.d(loggerTag, "URL: "+chatUrl);
         hashTags = new ArrayList<>();
-        this.userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
+        this.userLocalStorage = new UserLocalStorage(getSharedPreferences(StoragePreferences.USER_PREFERENCES, Context.MODE_PRIVATE));
         this.userName = userLocalStorage.getUserName()+" "+userLocalStorage.getUserSurName();
         this.firebase = new Firebase(chatUrl);
         final EditText textEdit = (EditText) this.findViewById(R.id.text_edit);
@@ -79,14 +80,8 @@ public class ChatActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed(){
-        Firebase firebaseChat;
-        if (userLocalStorage.isDriverMode()){
-            firebaseChat = new Firebase(getString(R.string.firebaseDriversChat));
-        } else {
-            firebaseChat = new Firebase(getString(R.string.firebaseUsersChat));
-        }
-
-        firebaseChat.addValueEventListener(chatValueEventListener);
+        startActivity(new Intent(ChatActivity.this,HomePageActivity.class));
+        finish();
     }
 
     private ValueEventListener chatValueEventListener = new ValueEventListener() {

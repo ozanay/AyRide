@@ -2,6 +2,7 @@ package com.iride.ayride;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -15,7 +16,6 @@ import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
-import com.microsoft.windowsazure.notifications.NotificationsManager;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -44,10 +44,9 @@ public class SearchResultsActivity extends AppCompatActivity {
                     android.R.layout.simple_list_item_1, formatRides(searchResults));
             ridesListView.setAdapter(ridesAdapter);
             ridesListView.setOnItemClickListener(rideClickListener);
-            userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
-            rideLocalStorage = new RideLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.RIDEPREFERENCES), Context.MODE_PRIVATE));
+            userLocalStorage = new UserLocalStorage(getSharedPreferences(StoragePreferences.USER_PREFERENCES, Context.MODE_PRIVATE));
+            rideLocalStorage = new RideLocalStorage(getSharedPreferences(StoragePreferences.RIDE_PREFERENCES, Context.MODE_PRIVATE));
             this.initializeMobileService();
-            NotificationsManager.handleNotifications(this, getString(R.string.gcmSenderId), RideRequestHandler.class);
         } catch(Exception exc){
             Log.e(loggerTag, exc.getMessage());
         }
@@ -74,7 +73,9 @@ public class SearchResultsActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        updateRide(position);
+                        Ride ride = searchResults.get(position);
+                        updateRide(ride);
+                        GcmSender.send(GcmRequestMessages.RIDE_REQUEST_MESSAGE,ride.getDriverInstanceId(),ride);
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -100,8 +101,7 @@ public class SearchResultsActivity extends AppCompatActivity {
         }
     }
 
-    private void updateRide(int position){
-        Ride ride = searchResults.get(position);
+    private void updateRide(Ride ride){
         ride.setPedestrianId(userLocalStorage.getUserId());
         ride.setPedestrianName(userLocalStorage.getUserName());
         ride.setPedestrianSurName(userLocalStorage.getUserSurName());
@@ -125,4 +125,10 @@ public class SearchResultsActivity extends AppCompatActivity {
             SearchResultsActivity.this.makeRequestAlert((String)adapter.getItemAtPosition(position), position);
         }
     };
+
+    @Override
+    public void onBackPressed() {
+        startActivity(new Intent(SearchResultsActivity.this,HomePageActivity.class));
+        finish();
+    }
 }

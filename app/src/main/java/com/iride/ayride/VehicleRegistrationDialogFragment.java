@@ -61,9 +61,16 @@ public class VehicleRegistrationDialogFragment extends DialogFragment {
         super.onAttach(activity);
         try {
             dialogListener = (VehicleRegistrationDialogListener) activity;
+            this.setCancelable(false);
         } catch (ClassCastException e) {
             Log.e(loggerTag, e.getMessage());
         }
+    }
+
+    @Override
+    public void onDetach(){
+        dialogListener = null;
+        super.onDetach();
     }
 
     protected Vehicle getVehicleInformations(){

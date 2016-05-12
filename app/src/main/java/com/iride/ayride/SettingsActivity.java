@@ -58,10 +58,10 @@ public class SettingsActivity extends PreferenceActivity {
             this.isVehicleInformationChange = false;
             this.isUserInformationChange = false;
             user = new User();
-            userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
+            userLocalStorage = new UserLocalStorage(getSharedPreferences(StoragePreferences.USER_PREFERENCES, Context.MODE_PRIVATE));
             if (this.isDriver) {
                 vehicle = new Vehicle();
-                vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.VEHICLEPREFERENCES), Context.MODE_PRIVATE));
+                vehicleLocalStorage = new VehicleLocalStorage(getSharedPreferences(StoragePreferences.VEHICLE_PREFERENCES, Context.MODE_PRIVATE));
             }
 
             initializeLayoutAndPreferences();

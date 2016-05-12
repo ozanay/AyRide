@@ -1,5 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:facebook="http://schemas.android.com/apk/res-auto"
     android:id="@+id/linearLayout"
     android:layout_width="match_parent"
 
@@ -87,11 +88,13 @@
         </LinearLayout>
 
         <com.facebook.login.widget.LoginButton
+            xmlns:facebook="http://schemas.android.com/apk/res-auto"
             android:id="@+id/facebook_login_button"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center_horizontal"
-            android:text="@string/facebookLoginText"
+            facebook:com_facebook_login_text="@string/facebookLoginText"
+            facebook:com_facebook_logout_text="@string/facebookLogoutText"
             android:textSize="@dimen/fb_text_size" />
     </LinearLayout>
 </LinearLayout>

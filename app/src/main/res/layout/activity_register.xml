@@ -67,8 +67,7 @@
                 android:layout_marginBottom="8dp"
                 android:inputType="date"
                 android:ems="10"
-                android:hint="Birthday"
-                android:onClick="showDatePickerDialog"/>
+                android:hint="Birthday"/>
         </android.support.design.widget.TextInputLayout>
 
         <!-- Gender Spinner -->

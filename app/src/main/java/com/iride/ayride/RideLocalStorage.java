@@ -3,6 +3,8 @@ package com.iride.ayride;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+
 public class RideLocalStorage {
 
     private final static String loggerTag = RideLocalStorage.class.getSimpleName();
@@ -24,6 +26,10 @@ public class RideLocalStorage {
     private final static String rideIsRejectedKey = "RIDEISREJECTED";
     private final static String rideIsCompleteKey = "RIDEISCOMPLETE";
     private final static String rideIsCanceledKey = "RIDEISCANCELED";
+    private final static String rideOriginLatitudeKey = "RIDEORIGINLATITUDE";
+    private final static String rideOriginLongitudeKey = "RIDEORIGINLONGITUDE";
+    private final static String rideDestinationLatitudeKey = "RIDEDESTINATIONLATITUDE";
+    private final static String rideDestinationLongitudeKey = "RIDEDESTINATIONLONGITUDE";
     private final static String ownInstanceIdKey = "OWNINSTANCEIDKEY";
 
     private SharedPreferences rideSharedPreferences;
@@ -212,6 +218,35 @@ public class RideLocalStorage {
         rideSharedPreferencesEditor.apply();
     }
 
+    public void storeRideOrigin(LatLng origin) {
+        if (origin == null) {
+            Log.d(loggerTag, "Ride Origin is null or empty!");
+            rideSharedPreferencesEditor.putString(rideOriginLatitudeKey, "");
+            rideSharedPreferencesEditor.putString(rideOriginLongitudeKey, "");
+            rideSharedPreferencesEditor.apply();
+            return;
+        }
+
+        rideSharedPreferencesEditor.putFloat(rideOriginLatitudeKey, (float) origin.latitude);
+        rideSharedPreferencesEditor.putFloat(rideOriginLongitudeKey, (float) origin.longitude);
+        rideSharedPreferencesEditor.apply();
+    }
+
+    public void storeRideDestination(LatLng destination) {
+        if (destination == null) {
+            Log.d(loggerTag, "Ride Origin is null or empty!");
+            rideSharedPreferencesEditor.putString(rideDestinationLatitudeKey, "");
+            rideSharedPreferencesEditor.putString(rideDestinationLongitudeKey, "");
+            rideSharedPreferencesEditor.apply();
+            return;
+        }
+
+        rideSharedPreferencesEditor.putFloat(rideDestinationLatitudeKey, (float) destination.latitude);
+        rideSharedPreferencesEditor.putFloat(rideDestinationLongitudeKey, (float) destination.longitude);
+        rideSharedPreferencesEditor.apply();
+
+    }
+
     public void storeIsAccepted(boolean isAccepted) {
         rideSharedPreferencesEditor.putBoolean(rideIsAcceptedKey, isAccepted);
         rideSharedPreferencesEditor.apply();
@@ -232,26 +267,28 @@ public class RideLocalStorage {
         rideSharedPreferencesEditor.apply();
     }
 
-    public String getOwnInstanceId() { return rideSharedPreferences.getString(ownInstanceIdKey, null);}
+    public String getOwnInstanceId() {
+        return rideSharedPreferences.getString(ownInstanceIdKey, null);
+    }
 
     public String getRideId() {
         return rideSharedPreferences.getString(rideIdKey, null);
     }
 
     public String getRideFrom() {
-        return rideSharedPreferences.getString(rideFromKey,null);
+        return rideSharedPreferences.getString(rideFromKey, null);
     }
 
     public String getRideTo() {
-        return rideSharedPreferences.getString(rideToKey,null);
+        return rideSharedPreferences.getString(rideToKey, null);
     }
 
     public String getRideAppointmentTime() {
-        return rideSharedPreferences.getString(rideAppointmentTimeKey,null);
+        return rideSharedPreferences.getString(rideAppointmentTimeKey, null);
     }
 
     public String getRideAvailableSeat() {
-        return rideSharedPreferences.getString(rideAvailableSeatKey,null);
+        return rideSharedPreferences.getString(rideAvailableSeatKey, null);
     }
 
     public String getRideComment() {
@@ -259,35 +296,46 @@ public class RideLocalStorage {
     }
 
     public String getRideDriverId() {
-        return rideSharedPreferences.getString(rideDriverIdKey,null);
+        return rideSharedPreferences.getString(rideDriverIdKey, null);
     }
 
     public String getRideDriverInstanceId() {
-        return rideSharedPreferences.getString(rideDriverInstanceIdKey,null);
+        return rideSharedPreferences.getString(rideDriverInstanceIdKey, null);
     }
 
     public String getRideDriverName() {
-        return rideSharedPreferences.getString(rideDriverNameKey,null);
+        return rideSharedPreferences.getString(rideDriverNameKey, null);
     }
 
     public String getRideDriverSurname() {
-        return rideSharedPreferences.getString(rideDriverSurnameKey,null);
+        return rideSharedPreferences.getString(rideDriverSurnameKey, null);
     }
 
     public String getRidePedestrianId() {
-        return rideSharedPreferences.getString(ridePedestrianIdKey,null);
+        return rideSharedPreferences.getString(ridePedestrianIdKey, null);
     }
 
     public String getRidePedestrianInstanceId() {
-        return rideSharedPreferences.getString(ridePedestrianInstanceIdKey,null);
+        return rideSharedPreferences.getString(ridePedestrianInstanceIdKey, null);
     }
 
     public String getRidePedestrianName() {
-        return rideSharedPreferences.getString(ridePedestrianNameKey,null);
+        return rideSharedPreferences.getString(ridePedestrianNameKey, null);
     }
 
     public String getRidePedestrianSurname() {
-        return rideSharedPreferences.getString(ridePedestrianSurnameKey,null);
+        return rideSharedPreferences.getString(ridePedestrianSurnameKey, null);
+    }
+
+    public LatLng getRideOrigin() {
+        return new LatLng(rideSharedPreferences.getFloat(rideOriginLatitudeKey, 0),
+                rideSharedPreferences.getFloat(rideOriginLongitudeKey, 0));
+    }
+
+    public LatLng getRideDestination() {
+        return new LatLng(rideSharedPreferences.getFloat(rideDestinationLatitudeKey, 0),
+                rideSharedPreferences.getFloat(rideDestinationLongitudeKey, 0));
+
     }
 
     public boolean getRideIsAccepted() {
@@ -295,18 +343,18 @@ public class RideLocalStorage {
     }
 
     public boolean getRideIsRejected() {
-        return rideSharedPreferences.getBoolean(rideIsRejectedKey,true);
+        return rideSharedPreferences.getBoolean(rideIsRejectedKey, true);
     }
 
     public boolean getRideIsComplete() {
-        return rideSharedPreferences.getBoolean(rideIsCompleteKey,true);
+        return rideSharedPreferences.getBoolean(rideIsCompleteKey, true);
     }
 
     public boolean getRideIsCanceled() {
-        return rideSharedPreferences.getBoolean(rideIsCanceledKey,true);
+        return rideSharedPreferences.getBoolean(rideIsCanceledKey, true);
     }
 
-    public Ride getRide(){
+    public Ride getRide() {
         Ride ride = new Ride();
         ride.setRideFrom(this.getRideFrom());
         ride.setRideTo(this.getRideTo());
@@ -329,7 +377,7 @@ public class RideLocalStorage {
         return ride;
     }
 
-    public void storeRide(Ride ride){
+    public void storeRide(Ride ride) {
         storeRideId(ride.getRideId());
         storeRideFrom(ride.getRideFrom());
         storeRideTo(ride.getRideTo());
@@ -350,7 +398,7 @@ public class RideLocalStorage {
         storeIsComplete(ride.isComplete());
     }
 
-    public void clearRideLocalStorage(){
+    public void clearRideLocalStorage() {
         storeRideId(null);
         storeRideFrom(null);
         storeRideTo(null);
@@ -365,6 +413,8 @@ public class RideLocalStorage {
         storeRidePedestrianInstanceId(null);
         storeRidePedestrianName(null);
         storeRidePedestrianSurname(null);
+        storeRideOrigin(null);
+        storeRideDestination(null);
         storeIsAccepted(false);
         storeIsRejected(false);
         storeIsCanceled(false);

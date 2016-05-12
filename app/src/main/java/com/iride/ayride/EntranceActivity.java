@@ -75,7 +75,7 @@ public class EntranceActivity extends AppCompatActivity {
 
             this.signUpButton = (Button) findViewById(R.id.sign_up_button);
             this.signUpButton.setOnClickListener(new SignUpListener());
-            userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
+            userLocalStorage = new UserLocalStorage(getSharedPreferences(StoragePreferences.USER_PREFERENCES, Context.MODE_PRIVATE));
             if (userLocalStorage.getUserName() != null && userLocalStorage.getUserSurName() != null){
                 changeActivity(homePage);
             }
@@ -205,7 +205,7 @@ public class EntranceActivity extends AppCompatActivity {
         try {
             this.mobileServiceClient = new MobileServiceClient(
                     getString(R.string.azureApiUrl),
-                    getString(R.string.azureApiKey),
+                    "GrNjSZlXnMAQjEblFKkvodLnSJyQHs15",
                     this
             );
             this.mobileServiceTable = mobileServiceClient.getTable("user_info", User.class);

@@ -15,7 +15,6 @@ import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
-import com.microsoft.windowsazure.notifications.NotificationsManager;
 
 import java.net.MalformedURLException;
 
@@ -36,7 +35,7 @@ public class IncomingRequestActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_incoming_request);
         try {
-            rideLocalStorage = new RideLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.RIDEPREFERENCES), Context.MODE_PRIVATE));
+            rideLocalStorage = new RideLocalStorage(getSharedPreferences(StoragePreferences.RIDE_PREFERENCES, Context.MODE_PRIVATE));
             this.ride = rideLocalStorage.getRide();
             if(ride == null){
                 Log.d(loggerTag, "RIDE IS NULL");
@@ -50,8 +49,6 @@ public class IncomingRequestActivity extends AppCompatActivity {
             loadingPanel.setVisibility(View.GONE);
             textView = (TextView) findViewById(R.id.request_message);
             textView.setText(convertRideToMessage(ride));
-            NotificationsManager.handleNotifications(this, getString(R.string.gcmSenderId), RideRequestHandler.class);
-
         } catch(Exception exc){
             Log.e(loggerTag, exc.getMessage());
         }
@@ -93,10 +90,10 @@ public class IncomingRequestActivity extends AppCompatActivity {
     private Ride clearRejectedRide(Ride ride){
         Ride clearedRide = ride;
         ride.setIsRejected(false);
-        ride.setPedestrianId("");
-        ride.setPedestrianInstanceId("");
-        ride.setPedestrianName("");
-        ride.setPedestrianSurName("");
+        ride.setPedestrianId(null);
+        ride.setPedestrianInstanceId(null);
+        ride.setPedestrianName(null);
+        ride.setPedestrianSurName(null);
         return clearedRide;
     }
 
@@ -107,6 +104,7 @@ public class IncomingRequestActivity extends AppCompatActivity {
             ride.setIsAccepted(true);
             rideLocalStorage.storeIsAccepted(true);
             updateRide(ride);
+            GcmSender.send(GcmRequestMessages.RIDE_REQUEST_ACCEPTED_MESSAGE,ride.getPedestrianInstanceId(),ride);
             Intent intent = new Intent(IncomingRequestActivity.this, ChatActivity.class);
             intent.putExtra("chatUrl",getString(R.string.firebaseP2PChat)+rideLocalStorage.getRideId());
             startActivity(intent);
@@ -121,6 +119,7 @@ public class IncomingRequestActivity extends AppCompatActivity {
             ride.setIsRejected(true);
             rideLocalStorage.storeIsRejected(true);
             updateRide(ride);
+            GcmSender.send(GcmRequestMessages.RIDE_REQUEST_REJECTED_MESSAGE, ride.getPedestrianInstanceId(), ride);
             ride = clearRejectedRide(ride);
             updateRide(ride);
             rideLocalStorage.storeRide(ride);
@@ -128,4 +127,5 @@ public class IncomingRequestActivity extends AppCompatActivity {
             finish();
         }
     };
+
 }

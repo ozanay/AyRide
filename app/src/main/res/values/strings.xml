@@ -4,6 +4,9 @@
     <string name="signIn">SIGN IN</string>
     <string name="signUp">SIGN UP</string>
     <string name="facebookLoginText">CONNECT WITH FACEBOOK</string>
+    <string name="facebookLogoutText">LOG OUT</string>
+    <string name="com_facebook_loginview_log_out_button">Log out</string>
+    <string name="com_facebook_loginview_log_in_button_long">Log in with Facebook</string>
     <string name="next">NEXT</string>
     <string name="birthday">Birthday</string>
     <string name="createAccount">Create Account</string>
@@ -47,6 +50,7 @@
     <string name="azureApiKey">GrNjSZlXnMAQjEblFKkvodLnSJyQHs15</string>
     <string name="azureApiUrl">https://ayride-backend.azure-mobile.net/</string>
     <string name="gcmProjectNumber">1072435786165</string>
+    <string name="gcmServerApi">AIzaSyD58RSGPu5NBUL4O6Qy3SZH-dyUjcGAdyk</string>
     <string name="accept">ACCEPT</string>
     <string name="reject">REJECT</string>
     <string name="gcmSenderId">1072435786165</string>
@@ -57,4 +61,9 @@
     <string name="firebaseP2PChat">https://ayride.firebaseio.com/chat/peertopeer/</string>
     <string name="addHashTag">ADD HASHTAG</string>
     <string name="hashTagHint">Hashtag</string>
+    <string name="tokenErrorMessage">An error occurred while either fetching the InstanceID token,
+        sending the fetched token to the server or subscribing to the PubSub topic. Please try
+        running the sample again.</string>
+    <string name="gcmSendMessage">Token retrieved and sent to server! You can now use gcmsender to
+        send downstream messages to this app.</string>
 </resources>

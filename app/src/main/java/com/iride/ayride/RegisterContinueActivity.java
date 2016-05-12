@@ -50,7 +50,7 @@ public class RegisterContinueActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_continue);
         user = new User();
-        userLocalStorage = new UserLocalStorage(getSharedPreferences(String.valueOf(StoragePreferences.PREFERENCES), Context.MODE_PRIVATE));
+        userLocalStorage = new UserLocalStorage(getSharedPreferences(StoragePreferences.USER_PREFERENCES, Context.MODE_PRIVATE));
         findViewById(R.id.sign_up_loading_panel).setVisibility(View.GONE);
         setFields(getIntent());
         initializeEditTexts();

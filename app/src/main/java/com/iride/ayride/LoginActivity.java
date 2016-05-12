@@ -1,13 +1,16 @@
 package com.iride.ayride;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.facebook.appevents.AppEventsLogger;
@@ -23,19 +26,22 @@ public class LoginActivity extends AppCompatActivity {
 
     private final static int passwordLengthRestriction = 8;
     private final static String containsDigit = ".*\\d+.*";
-    private final static String mobileServiceUrl = "https://useraccount.azure-mobile.net/";
-    private final static String mobileServiceAppKey = "BCGeAFQbjUEOGanLwVXslBzVMykgEM16";
+    private final static String loggerTag = LoginActivity.class.getSimpleName();
     private EditText emailText;
     private EditText passwordText;
     private Button signInButton;
     private MobileServiceClient mobileServiceClient;
     private MobileServiceTable<User> mobileServiceTable;
+    private RelativeLayout loadingPanel;
+    private UserLocalStorage userLocalStorage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        findViewById(R.id.sign_in_loading_panel).setVisibility(View.GONE);
+        userLocalStorage = new UserLocalStorage(getSharedPreferences(StoragePreferences.USER_PREFERENCES, Context.MODE_PRIVATE));
+        this.loadingPanel = (RelativeLayout) findViewById(R.id.sign_in_loading_panel);
+        loadingPanel.setVisibility(View.GONE);
         initializeUIFields();
         initializeMobileService();
     }
@@ -66,8 +72,8 @@ public class LoginActivity extends AppCompatActivity {
     private void initializeMobileService() {
         try {
             mobileServiceClient = new MobileServiceClient(
-                    mobileServiceUrl,
-                    mobileServiceAppKey,
+                    getString(R.string.azureApiUrl),
+                    getString(R.string.azureApiKey),
                     this
             );
             mobileServiceTable = mobileServiceClient.getTable("user_info", User.class);
@@ -102,14 +108,23 @@ public class LoginActivity extends AppCompatActivity {
     private void loginToApp(final String email, final String password) {
         mobileServiceTable.where().field("user_email").eq(email).and().field("user_password").eq(password).execute(new TableQueryCallback<User>() {
             public void onCompleted(List<User> result, int count, Exception exception, ServiceFilterResponse response) {
+                loadingPanel.setVisibility(View.GONE);
                 if (exception == null) {
                     if (!result.isEmpty()) {
                         if (result.size() == 1){
-                            startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
+                            Log.d(loggerTag, "User Found!");
+                            userLocalStorage.storeUser(result.get(0));
+                            startActivity(new Intent(LoginActivity.this, HomePageActivity.class));
                         }
+
+                        Log.d(loggerTag, "More than one result returned!");
+                        Toast.makeText(getApplicationContext(),"More Than One User!",Toast.LENGTH_SHORT).show();
+                        emailText.requestFocus();
+                        emailText.setSelectAllOnFocus(true);
                     }
                 } else {
-                    ShowMessage(exception.getCause().toString());
+                    Log.e(loggerTag, exception.getMessage());
+                    Toast.makeText(getApplicationContext(), "Unexpected Error",Toast.LENGTH_SHORT).show();
                     emailText.requestFocus();
                     emailText.setSelectAllOnFocus(true);
                 }
@@ -148,7 +163,7 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            findViewById(R.id.sign_in_loading_panel).setVisibility(View.GONE);
+            LoginActivity.this.loadingPanel.setVisibility(View.VISIBLE);
             loginToApp(emailText.getText().toString(), passwordText.getText().toString());
         }
     }
